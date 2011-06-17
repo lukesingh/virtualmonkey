@@ -7,7 +7,7 @@ require 'pp'
 
 # Auto-require Section
 some_not_included = true
-files = Dir.glob(File.join("lib", "virtualmonkey", "command", "**"))
+files = Dir.glob(File.join(File.dirname(__FILE__), "command", "**"))
 retry_loop = 0
 while some_not_included and retry_loop < (files.size ** 2) do
   begin
@@ -115,9 +115,10 @@ module VirtualMonkey
 
         @@gm.options = @@options
 
-        @@do_these.each do |deploy|
-          @@gm.run_test(deploy, @@options[:feature])
-        end
+        @@gm.run_tests(@@do_these, @@options[:feature])
+#        @@do_these.each do |deploy|
+#          @@gm.run_test(deploy, @@options[:feature])
+#        end
         @@remaining_jobs = @@gm.jobs.dup
 
         watch = EM.add_periodic_timer(10) {

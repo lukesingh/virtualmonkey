@@ -5,27 +5,42 @@ end
 
 module VirtualMonkey
   # Class Variables meant to be globally accessible, used for stack tracing
-  def self.feature_file=(obj)
-    @@feature_file = obj
+  def self.trace_log=(obj)
+    @@trace_log = obj
   end
 
-  def self.feature_file
-    @@feature_file ||= nil
+  def self.trace_log
+    @@trace_log ||= nil
   end
 
   module TestCaseInterface
-    # set_var is called on every run-through whether a clean run or a resume, it is intended
-    # for functions that set up state in the ruby process that doesn't get saved across executions
-    def set_var(sym, *args, &block)
-      behavior(sym, *args, &block)
-    end
-
     # Overrides backtick to provide stack tracing
     def `(cmd)
+      @retry_loop << 0
       execution_stack_trace("system", [cmd])
-      ret = super(cmd)
-      clean_stack_trace
-      ret
+      begin
+        begin
+          push_rerun_test
+          #pre-command
+          populate_settings if @deployment
+          #command
+          if @done_resuming
+            result = super(cmd)
+          else
+            if VirtualMonkey::trace_log == YAML::load(IO.read(ENV['RESUME_FILE']))
+              @done_resuming = true
+            end
+          end
+          #post-command
+          continue_test
+        end while @rerun_last_command.pop
+      ensure
+        clean_stack_trace
+        File.open(ENV["TRACE_FILE"], "w") { |f| f.write( VirtualMonkey::trace_log.to_yaml ) }
+      end
+      File.open(ENV["RESUME_FILE"], "w") { |f| f.write( VirtualMonkey::trace_log.to_yaml ) }
+      @retry_loop.pop
+      result
     end
   
     # Overrides raise to provide deep debugging abilities
@@ -56,14 +71,50 @@ module VirtualMonkey
       @stack_objects = []         # array holding the top most objects in the stack
       @iterating_stack = []       # stack that iterates
       @retry_loop = []
+      @done_resuming = true
+      if ENV['RESUME_FILE'] && File.exists?(ENV['RESUME_FILE'])
+        @done_resuming = false     
+      end
+      # Do renaming stuff
+      all_methods = self.methods + self.private_methods -
+                    Object.new().methods - Object.new().private_methods -
+                    VirtualMonkey::TestCaseInterface.instance_methods - VirtualMonkey::TestCaseInterface.private_instance_methods
+      behavior_methods = all_methods.select { |m| m !~ /(^set)|(exception_handle)|(^__.*__$)/i }
+      behavior_methods.each do |m|
+        new_m = "behavior_#{m}"
+#        klass = Kernel.const_get(self.class.to_s)
+        self.class.class_eval("alias_method :#{new_m}, :#{m}; def #{m}(*args, &block); function_wrapper(:#{new_m}, *args, &block); end")
+      end
     end
     
-    # behavior is meant to wrap every function call to provide the following functionality:
+    def function_wrapper(sym, *args, &block)
+      @retry_loop << 0
+      execution_stack_trace(sym, args)
+      begin
+        begin
+          push_rerun_test
+          #pre-command
+          populate_settings if @deployment
+          #command
+          result = __send__(sym, *args, &block)
+          #post-command
+          continue_test
+        end while @rerun_last_command.pop
+      ensure
+#        clean_stack_trace
+        File.open(ENV["TRACE_FILE"], "w") { |f| f.write( VirtualMonkey::trace_log.to_yaml ) }
+      end
+      File.open(ENV["RESUME_FILE"], "w") { |f| f.write( VirtualMonkey::trace_log.to_yaml ) }
+      @retry_loop.pop
+      result
+    end
+
+    # verify is meant to wrap every function call to provide the following functionality:
     # * Execution Tracing
     # * Exception Handling
     # * Runner-Contextual Debugging
     # * Built-in retrying
-    def behavior(sym, *args, &block)
+    def verify(sym, *args, &block)
       @retry_loop << 0
       execution_stack_trace(sym, args)
       begin
@@ -105,10 +156,16 @@ module VirtualMonkey
       set_ary.each { |s|
         begin
           push_rerun_test
-          result_temp = s.spot_check_command(command)
-          if block
-            if not yield(result_temp[:output],result_temp[:status])
-              raise "FATAL: Server #{s.nickname} failed probe. Got #{result_temp[:output]}"
+          if @done_resuming
+            result_temp = s.spot_check_command(command)
+            if block
+              if not yield(result_temp[:output],result_temp[:status])
+                raise "FATAL: Server #{s.nickname} failed probe. Got #{result_temp[:output]}"
+              end
+            end
+          else
+            if VirtualMonkey::trace_log == YAML::load(IO.read(ENV['RESUME_FILE']))
+              @done_resuming = true
             end
           end
           continue_test
@@ -187,6 +244,7 @@ module VirtualMonkey
     # Sets up most of the state for the runners
     def populate_settings
       unless @populated
+        @populated = true
         @servers = @deployment.servers_no_reload
         @servers.reject! { |s|
           s.settings
@@ -198,7 +256,6 @@ module VirtualMonkey
         @server_templates.uniq!
         self.__send__(:__lookup_scripts__)
         self.__send__(:__list_loader__)
-        @populated = true
       end
     end
 
@@ -218,7 +275,7 @@ module VirtualMonkey
           set = @servers.select { |s| s.nickname =~ /#{set}/ }
         end
       end
-      set = behavior(set) if set.is_a?(Symbol)
+      set = __send__(set) if set.is_a?(Symbol)
       set = [ set ] unless set.is_a?(Array)
       return set
     end
@@ -236,9 +293,16 @@ module VirtualMonkey
         #pre-command
         populate_settings if @deployment
         #command
-        result = obj.__send__(sym, *args)
-        if block
-          raise "FATAL: Failed behavior verification. Result was:\n#{result.inspect}" if not yield(result)
+        puts @done_resuming
+        if @done_resuming
+          result = obj.__send__(sym, *args)
+          if block
+            raise "FATAL: Failed behavior verification. Result was:\n#{result.inspect}" if not yield(result)
+          end
+        else
+          if VirtualMonkey::trace_log == YAML::load(IO.read(ENV['RESUME_FILE']))
+            @done_resuming = true
+          end
         end
         #post-command
         continue_test
@@ -249,7 +313,7 @@ module VirtualMonkey
           raise e
         end
       end while @rerun_last_command.pop
-      clean_stack_trace
+#      clean_stack_trace
       @retry_loop.pop
       result
     end
@@ -276,7 +340,7 @@ module VirtualMonkey
 
     # Execution Stack Trace function
     def execution_stack_trace(sym, args, obj=nil)
-      return nil unless VirtualMonkey::feature_file
+      return nil unless VirtualMonkey::trace_log
 
       referenced_ary = []
 
@@ -291,7 +355,7 @@ module VirtualMonkey
         @stack_objects.pop(Math.abs(@stack_objects.length - @rerun_last_command.length))
       end
       if @stack_objects.empty?
-        VirtualMonkey::feature_file << add_hash
+        VirtualMonkey::trace_log << add_hash
       else
         @iterating_stack = @stack_objects.last # get the last object from the object stack
         @iterating_stack << add_hash # here were are adding to iterating stack
@@ -302,11 +366,11 @@ module VirtualMonkey
     # Cleanup stack trace output
     def clean_stack_trace
       # This is ugly code...I apologize, but it works
-      return nil unless VirtualMonkey::feature_file
+      return nil unless VirtualMonkey::trace_log
       ary = @stack_objects
-      ary = VirtualMonkey::feature_file if ary.first.empty?
+      ary = VirtualMonkey::trace_log if ary.first.empty?
       ary.each { |temp|
-        temp = VirtualMonkey::feature_file unless temp.is_a?(Array)
+        temp = VirtualMonkey::trace_log unless temp.is_a?(Array)
         temp.each_index { |i|
           if temp[i].is_a?(Hash)
             key = temp[i].keys.first

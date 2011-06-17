@@ -110,6 +110,7 @@ end
 module RightScale
   module Api
     module Base
+#      include VirtualMonkey::TestCaseInterface
       # test_case_interface hook for nice printing
       def trace_inspect
         inspect

@@ -1,26 +1,28 @@
-#@base
-#
-# Feature: Base Server Test
-#   Tests the base server functions
-#
-# Scenario: base server test
-#
-# Given A simple deployment
-  @runner = VirtualMonkey::MonkeySelfTestRunner.new(ENV['DEPLOYMENT'])
+set :runner, VirtualMonkey::MonkeySelfTestRunner
 
-# Then I should stop the servers
-  @runner.behavior(:stop_all)
+before do
+  puts "ran before"
+  @runner.launch_all
+  @runner.wait_for_all("operational")
+end
 
-  @runner.behavior(:raise_exception)
+test "no-op" do
+  puts "in no-op"
+end
 
-# Then I should stop the servers
-  @runner.behavior(:launch_all)
+test "raise_exception" do
+  puts "in test_exceptions"
+  @runner.raise_exception
+end
 
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
+test "success_script" do
+  puts 'im a great success'
+end
 
-# Then I should test a passing script
-  @runner.behavior(:run_script_on_all, "test")
+#test "fail_script" do
+#  @runner.verify(:run_script_on_all, "test", true, {"EXIT_VAL" => "text:1"}) { |res| res.is_a?(Exception) }
+#end
 
-# Then I should test a failing script
-  @runner.behavior(:run_script_on_all, "test", true, {"EXIT_VAL" => "text:1"}) { |res| res.is_a?(Exception) }
+after do
+  puts "ran after"
+end

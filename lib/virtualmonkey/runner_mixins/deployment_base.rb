@@ -10,14 +10,8 @@ module VirtualMonkey
       @server_templates = []
       @deployment = Deployment.find_by_nickname_speed(deployment).first
       raise "Fatal: Could not find a deployment named #{deployment}" unless @deployment
-      behavior(:populate_settings)
+      populate_settings
     end
-
-    # It's not that I'm a Java fundamentalist; I merely believe that mortals should
-    # not be calling the following methods directly. Instead, they should use the
-    # TestCaseInterface methods (behavior, verify, probe) to access these functions.
-    # Trust me, I know what's good for you. -- Tim R.
-    private
 
     # Ensures the following blacklist entries are entered for all runners
     def deployment_base_blacklist
@@ -152,14 +146,14 @@ module VirtualMonkey
 
     # sets the MASTER_DB_DNSNAME to this machine's ip address
     def set_master_db_dnsname
-      the_name = behavior(:get_tester_ip_addr)
+      the_name = get_tester_ip_addr
       obj_behavior(@deployment, :set_input, "MASTER_DB_DNSNAME", the_name) 
       obj_behavior(@deployment, :set_input, "DB_HOST_NAME", the_name) 
     end
 
     # sets the db_mysql/fqdn to this machine's ip address
     def set_chef_master_db_dnsname
-      the_name = behavior(:get_tester_ip_addr)
+      the_name = get_tester_ip_addr
       obj_behavior(@deployment, :set_input, "db_mysql/fqdn", the_name) 
     end
 
@@ -224,7 +218,7 @@ module VirtualMonkey
 
     def start_ebs_all(wait=true)
       @servers.each { |s| obj_behavior(s, :start_ebs) }
-      behavior(:wait_for_all, "operational") if wait
+      wait_for_all("operational") if wait
       @servers.each { |s| 
         s.dns_name = nil 
         s.private_dns_name = nil
@@ -233,7 +227,7 @@ module VirtualMonkey
 
     def stop_ebs_all(wait=true)
       @servers.each { |s| obj_behavior(s, :stop_ebs) }
-      behavior(:wait_for_all, "stopped") if wait
+      wait_for_all("stopped") if wait
       @servers.each { |s| 
         s.dns_name = nil 
         s.private_dns_name = nil
@@ -242,7 +236,7 @@ module VirtualMonkey
 
     def stop_all(wait=true)
       @servers.each { |s| obj_behavior(s, :stop) }
-      behavior(:wait_for_all, "stopped") if wait
+      wait_for_all("stopped") if wait
       @servers.each { |s| 
         s.dns_name = nil 
         s.private_dns_name = nil
@@ -285,7 +279,7 @@ module VirtualMonkey
       audits = Array.new() 
       set = select_set(set)
       set.each do |s|
-        audits << behavior(:launch_script, friendly_name, s, options)
+        audits << launch_script(friendly_name, s, options)
       end
       if wait
         audits.each { |a| obj_behavior(a, :wait_for_completed) }
@@ -432,22 +426,22 @@ module VirtualMonkey
 #
     def perform_start_stop_operations
       if deployment.nickname =~ /EBS/
-        behavior(:detect_os)
+        detect_os
         s = @servers.first
         # Save configuration files for comparison after starting
-        behavior(:save_configuration_files, s)
+        save_configuration_files(s)
         # Stop the servers
-        behavior(:stop_ebs_all)
+        stop_ebs_all
         # Verify all stopped
         # Start the servers
-        behavior(:start_ebs_all, true)
+        start_ebs_all(true)
 #       Do this for all? Or just the one?
 #       @servers.each { |server| server.wait_for_operational_with_dns }
         s = @servers.first
         obj_behavior(s, :wait_for_operational_with_dns)
         # Verify operational
-        behavior(:run_simple_check, s)
-        behavior(:check_monitoring)
+        run_simple_check(s)
+        check_monitoring
       end
     end
 
@@ -476,13 +470,13 @@ module VirtualMonkey
     end
     
     def run_simple_checks
-      @servers.each { |s| behavior(:run_simple_check, s) }
+      @servers.each { |s| run_simple_check(s) }
     end
     
     # this is where ALL the generic application server checks live, this could get rather long but for now it's a single method with a sequence of checks
     def run_simple_check(server)
-      behavior(:test_mail_config, server)
-      behavior(:test_syslog_config, server)
+      test_mail_confi(server)
+      test_syslog_config(server)
     end
   end
 end

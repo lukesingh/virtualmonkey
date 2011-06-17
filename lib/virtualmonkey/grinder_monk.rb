@@ -72,7 +72,7 @@ class GrinderJob
                                             "AWS_ACCESS_KEY_ID" => Fog.credentials[:aws_access_key_id],
                                             "AWS_SECRET_ACCESS_KEY" => Fog.credentials[:aws_secret_access_key],
                                             "REST_CONNECTION_LOG" => @rest_log,
-                                            "EXECUTION_TRACE_LOG" => @trace_log,
+                                            "TRACE_FILE" => @trace_log,
                                             "MONKEY_NO_RESUME" => "#{@no_resume}",
                                             "MONKEY_NO_DEBUG" => "true"},
                         :stdout_handler => :on_read_stdout,
@@ -87,7 +87,7 @@ class GrinderMonk
   # Runs a grinder test on a single Deployment
   # * deployment<~String> the nickname of the deployment
   # * feature<~String> the feature filename 
-  def run_test(deployment, feature)
+  def run_test(deployment, feature, test_ary)
     new_job = GrinderJob.new
     new_job.logfile = File.join(@log_dir, "#{deployment.nickname}.log")
     new_job.rest_log = File.join(@log_dir, "#{deployment.nickname}.rest_connection.log")
@@ -96,7 +96,9 @@ class GrinderMonk
     new_job.no_resume = "true" if @options[:no_resume]
     new_job.verbose = true if @options[:verbose]
     break_point = @options[:breakpoint] if @options[:breakpoint]
-    cmd = "bin/grinder #{feature} #{break_point}"
+#    cmd = "bin/grinder #{feature} #{break_point}"
+    cmd = "bin/grinder --file #{feature} --deployment \"#{deployment.nickname}\" --tests "
+    test_ary.each { |test| cmd += " \"#{test}\" " }
     @jobs << new_job
     puts "running #{cmd}"
     new_job.run(deployment, cmd)
@@ -118,8 +120,22 @@ class GrinderMonk
   # runs a feature on an array of deployments
   # * deployments<~Array> array of strings containing the nicknames of the deployments
   # * feature_name<~String> the feature filename 
-  def run_tests(deployments,cmd)
-    deployments.each { |d| run_test(d,cmd) }
+  def run_tests(deployments,cmd,set=[])
+    test_case = VirtualMonkey::TestCase.new(@options[:feature])
+    total_keys = test_case.get_keys
+    total_keys = total_keys - (total_keys - set) unless set.empty?
+    keys_per_dep = (total_keys.length.to_f / deployments.length.to_f).ceil
+   
+    deployment_tests = []
+    (keys_per_dep * deployments.length).times { |i|
+      di = i % deployments.length
+      deployment_tests[di] ||= []
+      deployment_tests[di] << total_keys[i % total_keys.length]
+    }
+
+    deployments.each_with_index { |d,i| 
+      run_test(d,cmd,deployment_tests[i]) 
+    }
   end
 
   # Print status of jobs. Also watches for jobs that had exit statuses other than 0 or 1
@@ -129,7 +145,7 @@ class GrinderMonk
     old_running = @running
     old_sum = old_passed.size + old_failed.size + old_running.size
     @passed = @jobs.select { |s| s.status == 0 }
-    @failed = @jobs.select { |s| s.status == 1 }
+    @failed = @jobs.select { |s| s.status != 0 && s.status != nil }
     @running = @jobs.select { |s| s.status == nil }
     new_sum = @passed.size + @failed.size + @running.size
     puts "#{@passed.size} features passed.  #{@failed.size} features failed.  #{@running.size} features running for #{Time.now - @started_at}"

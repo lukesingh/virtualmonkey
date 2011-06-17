@@ -17,7 +17,14 @@ unless ENV['DEPLOYMENT']
     ENV['DEPLOYMENT'] = ENV['MONKEY_SELF_DEPLOYMENT_NAME']
   end
 end
-
+VirtualMonkey::trace_log = Array.new
+VirtualMonkey::trace_log << {"feature_file"=>ARGV[0]} # enter the name of the feature file
+if ENV['EXECUTION_TRACE_LOG']
+  trace_log = File.open(ENV['EXECUTION_TRACE_LOG'], "w")
+else
+  trace_log = $stdout
+end
+=begin
 usage = <<-EOS
 After setting the 'DEPLOYMENT' and 'REST_CONNECTION_LOG' environment variables, run the grinder using:
 
@@ -51,15 +58,6 @@ end
 
 @testcase = File.open(ARGV[0], "r")
 testname = File.basename(ARGV[0])
-
-VirtualMonkey::feature_file = Array.new
-VirtualMonkey::feature_file << {"feature_file"=>ARGV[0]} # enter the name of the feature file
-
-if ENV['EXECUTION_TRACE_LOG']
-  trace_log = File.open(ENV['EXECUTION_TRACE_LOG'], "w")
-else
-  trace_log = $stdout
-end
 
 linenum = 1
 @resume = 0
@@ -135,7 +133,19 @@ $stdout.syswrite "Total time elapsed: #{elapsed} seconds\n"
 if linenum > @breakpoint and ENV['MONKEY_NO_DEBUG'] !~ /true/i
   eval("#{runner_var}.launch_irb_session(:debugger)")
 end
+=end
 
-puts "Execution Trace:" if trace_log == $stdout
-trace_log.write( VirtualMonkey::feature_file.to_yaml )
-trace_log.close unless trace_log == $stdout
+# Trollop
+options = Trollop::options do
+  opt :tests, "Space-separated strings of tests to execute", :type => :strings
+  opt :file, "File name", :type => :string, :required => true
+  opt :deployment, "Full deployment name", :type => :string, :short => "-d"
+  opt :debug, "Enable inline debugging", :default => true, :short => "-g"
+  opt :no_resume, "Do not resume; start test from scratch"
+end
+# TODO: export trollop options to ENV variables
+ENV['TRACE_FILE'] ||= "/tmp/trace_file"
+
+test_case = VirtualMonkey::TestCase.new(options[:file], options)
+test_case.run(*options[:tests])
+
