@@ -46,17 +46,21 @@ module VirtualMonkey
 
     def run(*args)
       # Before
+      VirtualMonkey::readable_log << "\n============== BEFORE ALL ==============\n"
       @before[:all].call if @before[:all]
       # Test
       args = @test.keys if args.empty?
       args.each { |key|
-        puts "RUNNING: #{key.inspect}"
+        VirtualMonkey::readable_log << "\n============== #{key} ==============\n"
         @before[key].call if @before[key]
         @test[key].call if @test[key]
         @after[key].call if @after[key]
       }
       # After
+      VirtualMonkey::readable_log << "\n============== AFTER ALL ==============\n"
       @after[:all].call if @after[:all]
+      # Successful run, delete the resume file
+      File.delete(ENV['RESUME_FILE'])
     end
 
     def set(var, arg)
@@ -89,39 +93,3 @@ module VirtualMonkey
     end
   end
 end
-
-=begin
-
-set :runner, VirtualMonkeyRunner.new
-
-# Before ALL, for this file
-before do
-  @runner.set_variation_cpontainer(blah)
-  @runner.setup_from_scratch
-end
-
-before "promote" do
-  @runner.is_setup? # calls setup_from_scratch if not
-end
-
-test "restore" do
-
-end
-
-test "backup" do
-
-end
-
-test "promote" do
-
-end
-
-after "backup" do
-  @runner.reset_to_pristine_from_backup
-end
-
-after do
-  @runner.examine
-  @runner.stop_all
-end
-=end  

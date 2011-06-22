@@ -17,14 +17,12 @@ unless ENV['DEPLOYMENT']
     ENV['DEPLOYMENT'] = ENV['MONKEY_SELF_DEPLOYMENT_NAME']
   end
 end
-VirtualMonkey::trace_log = Array.new
-VirtualMonkey::trace_log << {"feature_file"=>ARGV[0]} # enter the name of the feature file
+=begin
 if ENV['EXECUTION_TRACE_LOG']
   trace_log = File.open(ENV['EXECUTION_TRACE_LOG'], "w")
 else
   trace_log = $stdout
 end
-=begin
 usage = <<-EOS
 After setting the 'DEPLOYMENT' and 'REST_CONNECTION_LOG' environment variables, run the grinder using:
 
@@ -146,6 +144,8 @@ end
 # TODO: export trollop options to ENV variables
 ENV['TRACE_FILE'] ||= "/tmp/trace_file"
 
+VirtualMonkey::trace_log = [{"feature_file"=>options[:file]}]
+VirtualMonkey::readable_log = [{"feature_file"=>options[:file]}]
 test_case = VirtualMonkey::TestCase.new(options[:file], options)
 test_case.run(*options[:tests])
 

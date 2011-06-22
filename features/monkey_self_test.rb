@@ -1,4 +1,4 @@
-set :runner, VirtualMonkey::MonkeySelfTestRunner
+set :runner, VirtualMonkey::Runner::MonkeySelfTest
 
 before do
   puts "ran before"
@@ -11,8 +11,8 @@ test "no-op" do
 end
 
 test "raise_exception" do
-  puts "in test_exceptions"
-  @runner.raise_exception
+  @runner.transaction { puts "in test_exceptions" }
+  @runner.transaction { @runner.raise_exception if rand(10) % 2 == 1 }
 end
 
 test "success_script" do

@@ -1,6 +1,8 @@
 module VirtualMonkey
-  class NginxFeAppRunner
-    include VirtualMonkey::DeploymentBase
-    include VirtualMonkey::NginxApplicationFrontend
+  module Runner
+    class NginxFeApp
+      include VirtualMonkey::Mixin::DeploymentBase
+      include VirtualMonkey::Mixin::NginxApplicationFrontend
+    end
    end
 end

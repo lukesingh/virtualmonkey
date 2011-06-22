@@ -1,6 +1,8 @@
 module VirtualMonkey
-  class SimpleRunner
-    include VirtualMonkey::DeploymentBase
-    include VirtualMonkey::Simple
+  module Runner
+    class Simple
+      include VirtualMonkey::Mixin::DeploymentBase
+      include VirtualMonkey::Mixin::Simple
+    end
   end
 end

@@ -1,5 +1,6 @@
 module VirtualMonkey
-  module Simple
-
+  module Mixin
+    module Simple
+    end
   end
 end

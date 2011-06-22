@@ -16,8 +16,8 @@ module VirtualMonkey
       @@options[:runner] = get_runner_class
       @@options[:terminate] = true
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      unless VirtualMonkey.const_defined?(@@options[:runner])
-        puts "WARNING: VirtualMonkey::#{@@options[:runner]} is not a valid class. Defaulting to SimpleRunner."
+      unless VirtualMonkey::Runner.const_defined?(@@options[:runner])
+        puts "WARNING: VirtualMonkey::Runner::#{@@options[:runner]} is not a valid class. Defaulting to SimpleRunner."
         @@options[:runner] = "SimpleRunner"
       end
 

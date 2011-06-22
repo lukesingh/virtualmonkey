@@ -102,8 +102,8 @@ module VirtualMonkey
       raise "Aborting" unless VirtualMonkey::Toolbox::api0_1?
       @@options[:runner] = get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      unless VirtualMonkey.const_defined?(@@options[:runner])
-        puts "WARNING: VirtualMonkey::#{@@options[:runner]} is not a valid class. Defaulting to SimpleRunner."
+      unless VirtualMonkey::Runner.const_defined?(@@options[:runner])
+        puts "WARNING: VirtualMonkey::Runner::#{@@options[:runner]} is not a valid class. Defaulting to SimpleRunner."
         @@options[:runner] = "SimpleRunner"
       end
 
@@ -154,7 +154,7 @@ module VirtualMonkey
     def self.audit_log_deployment_logic(deployment, interactive = false)
       @@options[:runner] = get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      runner = eval("VirtualMonkey::#{@@options[:runner]}.new(deployment.nickname)")
+      runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(deployment.nickname)")
       puts runner.behavior(:run_logger_audit, interactive, @@options[:qa])
     end
 
@@ -162,7 +162,7 @@ module VirtualMonkey
     def self.destroy_job_logic(job)
       @@options[:runner] = get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      runner = eval("VirtualMonkey::#{@@options[:runner]}.new(job.deployment.nickname)")
+      runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(job.deployment.nickname)")
       puts "Destroying successful deployment: #{runner.deployment.nickname}"
       runner.behavior(:stop_all, false)
       runner.deployment.destroy unless @@options[:no_delete] or @@command =~ /run|clone/
@@ -183,7 +183,7 @@ module VirtualMonkey
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
       @@do_these ||= @@dm.deployments
       @@do_these.each do |deploy|
-        runner = eval("VirtualMonkey::#{@@options[:runner]}.new(deploy.nickname)")
+        runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(deploy.nickname)")
         runner.behavior(:stop_all, false)
         state_dir = File.join(@@global_state_dir, deploy.nickname)
         if File.directory?(state_dir)
@@ -225,17 +225,7 @@ module VirtualMonkey
       return @@options[:runner] if @@options[:runner]
       return @@options[:terminate] if @@options[:terminate].is_a?(String)
       return nil unless @@options[:feature]
-      feature_file = @@options[:feature]
-      ret = nil
-      File.open(feature_file, "r") { |f|
-        begin
-          line = f.readline
-          ret = line.match(/VirtualMonkey::.*Runner/)[0].split("::").last if line =~ /= VirtualMonkey.*Runner/
-        rescue EOFError => e
-          ret = ""
-        end while !ret
-      }
-      return (ret == "" ? nil : ret)
+      return VirtualMonkey::TestCase.new(@options[:feature]).options[:runner].to_s.split("::").last
     end
   end
 end

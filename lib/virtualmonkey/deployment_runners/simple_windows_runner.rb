@@ -1,7 +1,8 @@
 module VirtualMonkey
-  class SimpleBasicWindowsRunner
-    include VirtualMonkey::DeploymentBase
-    include VirtualMonkey::SimpleWindows
-
+  module Runner
+    class SimpleBasicWindows
+      include VirtualMonkey::Mixin::DeploymentBase
+      include VirtualMonkey::Mixin::SimpleWindows
+    end
   end
 end

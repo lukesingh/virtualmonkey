@@ -1,6 +1,8 @@
 module VirtualMonkey
-  class PhpAioTrialChefRunner
-    include VirtualMonkey::DeploymentBase
-    include VirtualMonkey::ApplicationFrontend
+  module Runner
+    class PhpAioTrialChef
+      include VirtualMonkey::Mixin::DeploymentBase
+      include VirtualMonkey::Mixin::ApplicationFrontend
+    end
   end
 end

@@ -1,8 +1,8 @@
 module VirtualMonkey
   module Runner
-    class RailsAioDeveloperChef
+    class SimpleLuke
       include VirtualMonkey::Mixin::DeploymentBase
-      include VirtualMonkey::Mixin::ApplicationFrontend
+      include VirtualMonkey::Mixin::Simple
     end
   end
-end 
+end
