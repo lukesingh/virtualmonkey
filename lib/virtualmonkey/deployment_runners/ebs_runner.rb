@@ -5,7 +5,7 @@ module VirtualMonkey
       include VirtualMonkey::Mixin::EBS
 
       # lookup all the RightScripts that we will want to run
-      def lookup_scripts
+      def ebs_lookup_scripts
         scripts = [
                    [ 'backup', 'EBS stripe volume backup' ],
                    [ 'restore', 'EBS stripe volume restore' ],
@@ -17,7 +17,7 @@ module VirtualMonkey
                    [ 'grow_volume', 'EBS stripe volume grow and restore' ],
                    [ 'terminate', 'TERMINATE' ]
                  ]
-        st = ServerTemplate.find(resource_id(s_one.server_template_href))
+        st = match_st_by_server(s_one)
         load_script_table(st,scripts)
       end
     end

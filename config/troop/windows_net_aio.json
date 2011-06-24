@@ -2,7 +2,7 @@
   "tag":"MD_ASP.NET_AIO_TROOP",
   "feature":"windows_net_aio.rb",
   "cloud_variables":"aws_clouds.json",
-  "runner":"SimpleWindowsNetRunner",
+
   "common_inputs":"windows_net_aio.json",
   "server_template_ids":[
     "68953"

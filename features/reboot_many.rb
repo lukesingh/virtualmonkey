@@ -1,16 +1,21 @@
-  @runner = VirtualMonkey::SimpleRunner.new(ENV['DEPLOYMENT'])
-  @runner.behavior(:stop_all)
-  @runner.behavior(:launch_all)
-  @runner.behavior(:wait_for_all, "operational")
-  @runner.behavior(:reboot_all)
-  @runner.behavior(:wait_for_all, "operational")
-  @runner.behavior(:reboot_all)
-  @runner.behavior(:wait_for_all, "operational")
-  @runner.behavior(:reboot_all)
-  @runner.behavior(:wait_for_all, "operational")
-  @runner.behavior(:reboot_all)
-  @runner.behavior(:wait_for_all, "operational")
-  @runner.behavior(:reboot_all)
-  @runner.behavior(:wait_for_all, "operational")
-  @runner.behavior(:reboot_all)
-  @runner.behavior(:wait_for_all, "operational")
+  set :runner, VirtualMonkey::Runner::Simple
+before do
+  @runner.stop_all
+  @runner.launch_all
+end
+
+test "default" do
+  @runner.wait_for_all("operational")
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+end

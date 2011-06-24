@@ -2,7 +2,7 @@
   "tag":"PASS_TROOP",
   "feature":"nginx_pass_mysql_aio.rb",
   "cloud_variables":"aws_us_east.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"rails_passenger.json",
   "server_template_ids":[
     "94487"

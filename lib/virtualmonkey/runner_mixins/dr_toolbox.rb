@@ -9,7 +9,7 @@ module VirtualMonkey
         step=10
         while timeout > 0
           puts "Checking for snapshot completed"
-          snapshots = behavior(:find_snapshots)
+          snapshots =find_snapshots
           status = snapshots.map { |x| x.aws_status } 
           break unless status.include?("pending")
           sleep step
@@ -32,7 +32,7 @@ module VirtualMonkey
       def find_snapshot_timestamp(provider=:ebs)
         case provider
         when :ebs
-          last_snap = behavior(:find_snapshots).last
+          last_snap =find_snapshots.last
           last_snap.tags.detect { |t| t["name"] =~ /timestamp=(\d+)$/ }
           timestamp = $1
         when :s3
@@ -85,24 +85,24 @@ module VirtualMonkey
       end
   
       def test_s3
-      #  behavior(:run_script, "do_force_reset", s_one)
+      # run_script("do_force_reset", s_one)
       #  sleep 10
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
         sleep 10
         probe(s_one, "dd if=/dev/urandom of=/mnt/storage/monkey_was_here bs=4M count=200")
         sleep 10
-        behavior(:run_script, "do_backup_s3", s_one)
+       run_script("do_backup_s3", s_one)
         sleep 10
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 10
-        behavior(:run_script, "do_restore_s3", s_one)
+       run_script("do_restore_s3", s_one)
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
         end
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 10
-        behavior(:run_script, "do_restore_s3", s_one, {"block_device/timestamp_override" => "text:#{find_snapshot_timestamp(:s3)}" })
+       run_script("do_restore_s3", s_one, {"block_device/timestamp_override" => "text:#{find_snapshot_timestamp(:s3)}" })
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
@@ -111,25 +111,25 @@ module VirtualMonkey
   
       def test_ebs
         # EBS is already setup, to save time we'll skip the force_reset
-        #behavior(:run_script, "do_force_reset", s_one)
+        run_script("do_force_reset", s_one)
         #sleep 10
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
         probe(s_one, "dd if=/dev/urandom of=/mnt/storage/monkey_was_here bs=4M count=500")
         sleep 100
-        behavior(:run_script, "do_backup_ebs", s_one)
+       run_script("do_backup_ebs", s_one)
         wait_for_snapshots
         sleep 100
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
   # need to wait here for the volume status to settle (detaching)
         sleep 400
-        behavior(:run_script, "do_restore_ebs", s_one)
+       run_script("do_restore_ebs", s_one)
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
         end
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 400
-        behavior(:run_script, "do_restore_ebs", s_one, {"block_device/timestamp_override" => "text:#{find_snapshot_timestamp(:ebs)}" })
+       run_script("do_restore_ebs", s_one, {"block_device/timestamp_override" => "text:#{find_snapshot_timestamp(:ebs)}" })
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
@@ -137,24 +137,24 @@ module VirtualMonkey
       end
   
       def test_cloud_files
-      #  behavior(:run_script, "do_force_reset", s_one)
+      # run_script("do_force_reset", s_one)
       #  sleep 10
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
         sleep 10
         probe(s_one, "dd if=/dev/urandom of=/mnt/storage/monkey_was_here bs=4M count=200")
         sleep 10
-        behavior(:run_script, "do_backup_cloud_files", s_one)
+       run_script("do_backup_cloud_files", s_one)
         sleep 10
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 10
-        behavior(:run_script, "do_restore_cloud_files", s_one)
+       run_script("do_restore_cloud_files", s_one)
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
         end
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 10
-        behavior(:run_script, "do_restore_cloud_files", s_one, {"block_device/timestamp_override" => "text:#{find_snapshot_timestamp(:cloud_files)}" })
+       run_script("do_restore_cloud_files", s_one, {"block_device/timestamp_override" => "text:#{find_snapshot_timestamp(:cloud_files)}" })
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
@@ -192,7 +192,7 @@ module VirtualMonkey
         # Setup Backups for every minute
         opts = {"block_device/cron_backup_hour" => "text:*",
                 "block_device/cron_backup_minute" => "text:*"}
-        behavior(:run_script, "setup_continuous_backups_cloud_files", s_one, opts)
+       run_script("setup_continuous_backups_cloud_files", s_one, opts)
         cloud_files = Fog::Storage.new(:provider => 'Rackspace')
         # Wait for directory to be created
         sleep 120
@@ -208,7 +208,7 @@ module VirtualMonkey
         dir.files.reload
         raise "FATAL: Failed Continuous Backup Enable Test" unless dir.files.length > count
         # Disable cron job
-        behavior(:run_script, "do_disable_continuous_backups_cloud_files", s_one)
+       run_script("do_disable_continuous_backups_cloud_files", s_one)
         sleep 120
         count = dir.files.length
         sleep 120
@@ -220,7 +220,7 @@ module VirtualMonkey
         # Setup Backups for every minute
         opts = {"block_device/cron_backup_hour" => "text:*",
                 "block_device/cron_backup_minute" => "text:*"}
-        behavior(:run_script, "setup_continuous_backups_s3", s_one, opts)
+       run_script("setup_continuous_backups_s3", s_one, opts)
         cloud_files = Fog::Storage.new(:provider => 'AWS')
         # Wait for directory to be created
         sleep 120
@@ -236,7 +236,7 @@ module VirtualMonkey
         dir.files.reload
         raise "FATAL: Failed Continuous Backup Enable Test" unless dir.files.length > count
         # Disable cron job
-        behavior(:run_script, "do_disable_continuous_backups_s3", s_one)
+       run_script("do_disable_continuous_backups_s3", s_one)
         sleep 120
         count = dir.files.length
         sleep 120
@@ -248,27 +248,27 @@ module VirtualMonkey
         # Setup Backups for every minute
         opts = {"block_device/cron_backup_hour" => "text:*",
                 "block_device/cron_backup_minute" => "text:*"}
-        behavior(:run_script, "setup_continuous_backups_ebs", s_one, opts)
+       run_script("setup_continuous_backups_ebs", s_one, opts)
         # Wait for snapshots to be created
         sleep 300
         retries = 0
-        snapshots = behavior(:find_snapshots)
+        snapshots =find_snapshots
         until snapshots.length > 0
           retries += 1
           raise "FATAL: Retry count exceeded 5" unless retries < 5
           sleep 100
-          snapshots = behavior(:find_snapshots)
+          snapshots =find_snapshots
         end
         # get file count
         count = snapshots.length
         sleep 200
-        raise "FATAL: Failed Continuous Backup Enable Test" unless behavior(:find_snapshots).length > count
+        raise "FATAL: Failed Continuous Backup Enable Test" unless find_snapshots.length > count
         # Disable cron job
-        behavior(:run_script, "do_disable_continuous_backups_ebs", s_one)
+       run_script("do_disable_continuous_backups_ebs", s_one)
         sleep 200
-        count = behavior(:find_snapshots).length
+        count =find_snapshots.length
         sleep 200
-        raise "FATAL: Failed Continuous Backup Disable Test" unless behavior(:find_snapshots).length == count
+        raise "FATAL: Failed Continuous Backup Disable Test" unless find_snapshots.length == count
       end
   
       def release_container

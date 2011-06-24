@@ -1,25 +1,27 @@
-  @runner = VirtualMonkey::MysqlChefRunner.new(ENV['DEPLOYMENT'])
-  @runner.behavior(:stop_all)
-  @runner.set_var(:set_variation_lineage)
-  @runner.set_var(:set_variation_container)
-  @runner.set_var(:set_variation_storage_type)
+set :runner, VirtualMonkey::Runner::MysqlChef
 
-  @runner.behavior(:stop_all, true)
-#  @runner.set_var(:setup_dns, "virtualmonkey_shared_resources") # DNSMadeEasy
-  @runner.behavior(:launch_all)
+before do
+  @runner.stop_all(true)
+  @runner.set_variation_lineage
+  @runner.set_variation_container
+  @runner.set_variation_storage_type
+#  @runner.setup_dns("virtualmonkey_shared_resources") # DNSMadeEasy
+  @runner.launch_all
+  @runner.wait_for_all("operational")
+end
 
-#  @runner.behavior(:wait_for_all, "booting")
-  @runner.behavior(:wait_for_all, "operational")
-#  @runner.behavior(:setup_block_device)
-#  @runner.behavior(:do_backup)
-#  @runner.behavior(:do_force_reset)
-#  @runner.behavior(:do_restore)
-  @runner.behavior(:test_multicloud)
-#  @runner.behavior(:check_monitoring)
-#  @runner.behavior(:check_mysql_monitoring)
-#  @runner.behavior(:run_reboot_operations)
-#  @runner.behavior(:check_monitoring)
-#  @runner.behavior(:run_restore_with_timestamp_override)
-#  @runner.behavior(:run_logger_audit)
-#  @runner.behavior(:stop_all, true)
-#  @runner.behavior(:release_dns)
+test "default" do
+#  @runner.setup_block_device
+#  @runner.do_backup
+#  @runner.do_force_reset
+#  @runner.do_restore
+  @runner.test_multicloud
+#  @runner.check_monitoring
+#  @runner.check_mysql_monitoring
+#  @runner.run_reboot_operations
+#  @runner.check_monitoring
+#  @runner.run_restore_with_timestamp_override
+#  @runner.run_logger_audit
+#  @runner.stop_all(true)
+#  @runner.release_dns
+end

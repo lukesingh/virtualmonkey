@@ -5,7 +5,7 @@
                     "php.json",
                     "rails.json",
                     "tomcat6.json"],
-  "runner":"SimpleRunner",
+
   "server_template_ids":[
     "84648",
     "84648",

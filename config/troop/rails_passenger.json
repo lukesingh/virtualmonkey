@@ -1,6 +1,6 @@
 {
   "feature":"rails.rb",
-  "runner":"SimpleRunner",
+
   "server_template_ids":[
     "84646",
     "84646",

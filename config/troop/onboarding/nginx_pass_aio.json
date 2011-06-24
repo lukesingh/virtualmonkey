@@ -2,7 +2,7 @@
   "tag":"PASS_TROOP",
   "feature":"nginx_pass_aio.rb",
   "cloud_variables":"aws_us_east.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"nginx_pass_aio.json",
   "server_template_ids":[
     "96046"

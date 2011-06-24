@@ -1,6 +1,6 @@
 {
   "tag":"PGSQL_TROOP",
-  "runner":"PostgresRunner",
+
   "common_inputs":"postgres.json",
   "server_template_ids":[
     "98744",

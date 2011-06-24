@@ -2,7 +2,7 @@
   "tag":"BASE_TROOP",
   "feature":"base.rb",
   "cloud_variables":"aws_clouds.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"base.json",
   "server_template_ids":[
     "84653"

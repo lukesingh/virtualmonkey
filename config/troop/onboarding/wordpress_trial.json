@@ -2,7 +2,7 @@
   "tag":"WORDPRESS_LAMP",
   "feature":"wordpress_demo.rb",
   "cloud_variables":"aws_us_east.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"wordpress.json",
   "server_template_ids":[
     "96054"

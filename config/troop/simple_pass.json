@@ -1,5 +1,5 @@
 {
-  "runner":"SimpleRunner",
+
   "common_inputs":"mysql.json",
   "tag":"SIMPLECRUISE",
   "server_template_ids":[

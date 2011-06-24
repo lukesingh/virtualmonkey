@@ -1,32 +1,15 @@
-#@base
-#
-# Feature: Base Server Test
-#   Tests the base server functions
-#
-# Scenario: base server test
-#
-# Given A simple deployment
-  @runner = VirtualMonkey::SimpleRunner.new(ENV['DEPLOYMENT'])
+  set :runner, VirtualMonkey::Runner::Simple
 
-# Then I should stop the servers
-  @runner.behavior(:stop_all)
+before do
+  @runner.stop_all
+  @runner.launch_all
+  @runner.wait_for_all("operational")
+end
 
-# Then I should launch all servers
-  @runner.behavior(:launch_all)
-
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
-
-# Then I should check that monitoring is enabled
-  @runner.behavior(:check_monitoring)
-
-# Then I should reboot the servers
-  @runner.behavior(:reboot_all)
-
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
-
-# Then I should check that monitoring is enabled
-  @runner.behavior(:check_monitoring)
-
-#  @runner.behavior(:run_logger_audit)
+test "default" do
+  @runner.check_monitoring
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.check_monitoring
+#  @runner.run_logger_audit
+end

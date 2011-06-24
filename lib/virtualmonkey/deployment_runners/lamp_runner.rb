@@ -16,14 +16,14 @@ module VirtualMonkey
   
       def run_lamp_checks
         # check that the standard unified app is responding on port 80
-        behavior(:run_unified_application_checks, @servers, 80)
+        run_unified_application_checks(@servers, 80)
         
         # check that running the mysql backup script succeeds
         probe(@servers.first, "/etc/cron.daily/mysql-dump-backup.sh")
   
         # exercise operational RightScript(s)
-        behavior(:run_script, "backup", @servers.first)
-        behavior(:run_script, "restart_apache", @servers.first)
+        run_script("backup", @servers.first)
+        run_script("restart_apache", @servers.first)
   
         # check that mysql tmpdir is custom setup on all servers
         query = "show variables like 'tmpdir'"

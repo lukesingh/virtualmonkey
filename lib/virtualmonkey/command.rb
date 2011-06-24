@@ -102,10 +102,6 @@ module VirtualMonkey
       raise "Aborting" unless VirtualMonkey::Toolbox::api0_1?
       @@options[:runner] = get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      unless VirtualMonkey::Runner.const_defined?(@@options[:runner])
-        puts "WARNING: VirtualMonkey::Runner::#{@@options[:runner]} is not a valid class. Defaulting to SimpleRunner."
-        @@options[:runner] = "SimpleRunner"
-      end
 
       EM.run {
         @@gm ||= GrinderMonk.new
@@ -155,7 +151,7 @@ module VirtualMonkey
       @@options[:runner] = get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
       runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(deployment.nickname)")
-      puts runner.behavior(:run_logger_audit, interactive, @@options[:qa])
+      puts runner.run_logger_audit(interactive, @@options[:qa])
     end
 
     # Encapsulates the logic for destroying the deployment from a single job
@@ -164,7 +160,7 @@ module VirtualMonkey
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
       runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(job.deployment.nickname)")
       puts "Destroying successful deployment: #{runner.deployment.nickname}"
-      runner.behavior(:stop_all, false)
+      runner.stop_all(false)
       runner.deployment.destroy unless @@options[:no_delete] or @@command =~ /run|clone/
       @@remaining_jobs.delete(job)
       #Release DNS logic
@@ -184,7 +180,7 @@ module VirtualMonkey
       @@do_these ||= @@dm.deployments
       @@do_these.each do |deploy|
         runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(deploy.nickname)")
-        runner.behavior(:stop_all, false)
+        runner.stop_all(false)
         state_dir = File.join(@@global_state_dir, deploy.nickname)
         if File.directory?(state_dir)
           puts "Deleting state files for #{deploy.nickname}..."
@@ -225,7 +221,19 @@ module VirtualMonkey
       return @@options[:runner] if @@options[:runner]
       return @@options[:terminate] if @@options[:terminate].is_a?(String)
       return nil unless @@options[:feature]
-      return VirtualMonkey::TestCase.new(@options[:feature]).options[:runner].to_s.split("::").last
+=begin
+      ret = nil 
+      File.open(@@options[:feature], "r") { |f| 
+        begin
+          line = f.readline
+          ret = $1 if line =~ /set.*VirtualMonkey::Runner::([^ ]*)/
+        rescue EOFError => e
+          ret = ""
+        end while !ret
+      }   
+      return (ret == "" ? nil : ret)
+=end
+      return VirtualMonkey::TestCase.new(@@options[:feature]).options[:runner].to_s.split("::").last
     end
   end
 end

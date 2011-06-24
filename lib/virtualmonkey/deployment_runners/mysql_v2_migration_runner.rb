@@ -16,10 +16,10 @@ module VirtualMonkey
       end
   
       def run_promotion_operations
-        behavior(:config_master_from_scratch, s_one)
-        obj_behavior(s_one, :relaunch)
+        config_master_from_scratch(s_one)
+        s_one.relaunch
         s_one.dns_name = nil
-        behavior(:wait_for_snapshots)
+        wait_for_snapshots
       end
   
       # lookup all the RightScripts that we will want to run
@@ -77,8 +77,8 @@ module VirtualMonkey
   
       def launch_db_manager_slave
         s_two.settings
-        behavior(:wait_for_snapshots)
-        behavior(:run_script, "slave_init", s_two)
+        wait_for_snapshots
+        run_script("slave_init", s_two)
       end
     end
   end

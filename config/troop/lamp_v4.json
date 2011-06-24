@@ -1,7 +1,7 @@
 {
   "feature":"lamp.feature",
   "cloud_variables":"aws_us_west.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"lamp.json",
   "tag":"MONKEY_LAMP_TESTING",
   "server_template_ids":[

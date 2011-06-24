@@ -65,7 +65,6 @@ module VirtualMonkey
       @@options = Trollop::options do
         opt :tag, "Tag to match prefix of the deployments.", :type => :string, :required => true, :short => "-t"
         opt :only, "regex string to use for subselection matching on deployments.  Eg. --only x86_64", :type => :string
-        opt :runner, "Use the specified runner class to flag messages.", :type => :string, :short => "-r"
         opt :feature, "Use the runner class from the specified feature file to flag messages.", :type => :string, :short => "-f"
         opt :list_trainer, "run through the interactive white- and black-list trainer."
         opt :qa, "Performs a strict black-list check, ignoring white-list entries"

@@ -2,7 +2,7 @@
   "tag":"JEREMYDEI1111_LUCID_IMG_TEST",
   "feature":"image_tester.rb",
   "cloud_variables":"aws_clouds.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"image_tester.json",
   "server_template_ids":[
     "41505"

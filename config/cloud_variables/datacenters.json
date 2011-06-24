@@ -14,10 +14,19 @@
   },
   "2":{
   },
+  "1296":{
+    "datacenter_href":"/api/clouds/1296/datacenters/7TBI78LE57MH2"
+  },
+  "773":{
+    "datacenter_href":"/api/clouds/773/datacenters/EPOQNJ7ITOCVB"
+  },
   "3":{
   },
   "1153":{
     "datacenter_href":"/api/clouds/1153/datacenters/DUCE7D35LE4J0"
+  },
+  "1242":{
+    "datacenter_href":"/api/clouds/1242/datacenters/6L8DR8OJ56NEN"
   },
   "4":{
   },

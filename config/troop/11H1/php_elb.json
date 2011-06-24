@@ -1,7 +1,7 @@
 {
   "tag":"PHP_ELB_TROOP",
   "feature":"php_elb.rb",
-  "runner":"SimpleRunner",
+
   "server_template_ids":[
     "84643",
     "84643"

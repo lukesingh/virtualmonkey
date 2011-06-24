@@ -7,6 +7,11 @@ module VirtualMonkey
       def raise_exception
         raise "FAIL"
       end
+
+      def test_deprecation
+        obj_behavior(@servers, :first)
+      end
+
       #def monkey_self_test_lookup_scripts
       
   # scripts = [

@@ -17,7 +17,7 @@ module VirtualMonkey
 =end
       def run_lamp_chef_checks
         # check that the standard unified app is responding on port 80
-        behavior(:run_unified_application_checks, @servers, 80)
+        run_unified_application_checks(@servers, 80)
   
 =begin      
         # check that running the mysql backup script succeeds

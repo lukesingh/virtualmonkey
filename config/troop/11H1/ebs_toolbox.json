@@ -1,6 +1,6 @@
 {
   "tag":"TROOP_EBS_TOOLBOX",
-  "runner":"SimpleRunner",
+
   "common_inputs":"ebs_toolbox.json",
   "server_template_ids":[
     "84656",

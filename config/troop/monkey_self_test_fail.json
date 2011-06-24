@@ -2,7 +2,7 @@
   "tag":"MONKEY_SELF_TEST",
   "feature":"monkey_self_test.rb",
   "cloud_variables":"aws_us_east.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"monkey_self_test_fail.json",
   "server_template_ids":[
     "98231"

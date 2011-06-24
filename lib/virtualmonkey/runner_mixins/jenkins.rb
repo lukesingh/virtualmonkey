@@ -10,7 +10,7 @@ module VirtualMonkey
         step=10
         while timeout > 0
           puts "Checking for snapshot completed"
-          snapshots = behavior(:find_snapshots)
+          snapshots =find_snapshots
           status = snapshots.map { |x| x.aws_status } 
           break unless status.include?("pending")
           sleep step
@@ -61,20 +61,20 @@ module VirtualMonkey
       end
   
       def test_s3
-      #  behavior(:run_script, "do_force_reset", s_one)
+      # run_script("do_force_reset", s_one)
       #  sleep 10
-      #  behavior(:run_script, "setup_lvm_device_ec2_ephemeral", s_one)
+      # run_script("setup_lvm_device_ec2_ephemeral", s_one)
         options = {
                 "JENKINS_BACKUP_TYPE" => "text:s3"
         }
         probe(s_one, "touch /mnt/storage/monkey_was_here")
         sleep 10
-        behavior(:run_script, "backup", s_one, options)
+       run_script("backup", s_one, options)
         sleep 10
-        behavior(:do_reset)
-        behavior(:run_script, "restore", s_one, options)
+       do_reset
+       run_script("restore", s_one, options)
         # Restore spawns other scripts, so to make sure it's done, let's run another!
-        behavior(:run_script, "service_restart", s_one)
+       run_script("service_restart", s_one)
         probe(s_one, "test -f /mnt/storage/monkey_was_here") do |result, status|
           raise "FATAL: no files found in the backup #{result} #{status}" if status != 0
           true
@@ -83,22 +83,22 @@ module VirtualMonkey
   
       def test_ebs
         # EBS is already setup, to save time we'll skip the force_reset
-        #behavior(:run_script, "do_force_reset", s_one)
+        run_script("do_force_reset", s_one)
         #sleep 10
-        #behavior(:run_script, "setup_lvm_device_ebs", s_one)
+        run_script("setup_lvm_device_ebs", s_one)
         options = {
                 "JENKINS_BACKUP_TYPE" => "text:ebs"
         }      
         probe(s_one, "touch /mnt/storage/monkey_was_here")
         sleep 10
-        behavior(:run_script, "backup", s_one, options)
+       run_script("backup", s_one, options)
         wait_for_snapshots
-        behavior(:do_reset)
+       do_reset
   # need to wait here for the volume status to settle (detaching)
         sleep 200
-        behavior(:run_script, "restore", s_one, options)
+       run_script("restore", s_one, options)
         # Restore spawns other scripts, so to make sure it's done, let's run another!
-        behavior(:run_script, "service_restart", s_one)
+       run_script("service_restart", s_one)
         probe(s_one, "test -f /mnt/storage/monkey_was_here") do |result, status|
           raise "FATAL: no files found in the backup #{result} #{status}" if status != 0
           true
@@ -106,20 +106,20 @@ module VirtualMonkey
       end
   
       def test_cloud_files
-      #  behavior(:run_script, "do_force_reset", s_one)
+      # run_script("do_force_reset", s_one)
       #  sleep 10
-      #  behavior(:run_script, "setup_lvm_device_rackspace", s_one)
+      # run_script("setup_lvm_device_rackspace", s_one)
         options = {
                 "JENKINS_BACKUP_TYPE" => "text:cloud_files"
         }
         probe(s_one, "touch /mnt/storage/monkey_was_here")
         sleep 10
-        behavior(:run_script, "backup", s_one, options)
+       run_script("backup", s_one, options)
         sleep 10
-        behavior(:do_reset)
-        behavior(:run_script, "restore", s_one, options)
+       do_reset
+       run_script("restore", s_one, options)
         # Restore spawns other scripts, so to make sure it's done, let's run another!
-        behavior(:run_script, "service_restart", s_one)
+       run_script("service_restart", s_one)
         probe(s_one, "test -f /mnt/storage/monkey_was_here") do |result, status|
           raise "FATAL: no files found in the backup #{result} #{status}" if status != 0
           true
@@ -141,22 +141,22 @@ module VirtualMonkey
       end
   
       def do_reset
-        behavior(:do_service_stop);
-        behavior(:run_script, "do_force_reset", s_one)
+       do_service_stop;
+       run_script("do_force_reset", s_one)
         sleep 10
       end
   
       def do_service_restart
-        behavior(:run_script, 'service_restart', s_one)
+       run_script('service_restart', s_one)
       end
   
       def do_service_stop
-        behavior(:run_script, 'service_stop', s_one)
+       run_script('service_stop', s_one)
       end
   
       def do_prep
-        behavior(:run_script, 'setup_block_device', s_one)
-        behavior(:run_script, 'move_datadir', s_one)
+       run_script('setup_block_device', s_one)
+       run_script('move_datadir', s_one)
       end
   
   # Check for specific Jenkins data.
@@ -188,7 +188,7 @@ module VirtualMonkey
       end
   
       def test_http
-        behavior(:test_http_response, "Create an account", "#{s_one.dns_name}:3389/login", 3389)
+       test_http_response("Create an account", "#{s_one.dns_name}:3389/login", 3389)
       end
     end
   end

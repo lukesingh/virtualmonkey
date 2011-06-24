@@ -12,140 +12,29 @@ if require 'ruby-debug'
 end
 require 'irb'
 
-unless ENV['DEPLOYMENT']
+# Trollop
+default_log_file = File.join("tmp", "trace_file")
+options = Trollop::options do
+  opt :file, "Feature file name", :type => :string, :required => true
+  opt :log, "Log file name (defaults to #{default_log_file})", :type => :string, :default => default_log_file, :required => true
+  opt :tests, "Space-separated strings of tests to execute", :type => :strings
+  opt :deployment, "Full deployment name", :type => :string, :short => "-d"
+  opt :no_debug, "Disable inline debugging", :short => "-g"
+  opt :no_resume, "Do not resume; start test from scratch", :short => "-n"
+end
+
+ENV['MONKEY_NO_DEBUG'] ||= "#{options[:no_debug]}"
+unless options[:deployment]
   if VirtualMonkey::Toolbox::find_myself_in_api()
-    ENV['DEPLOYMENT'] = ENV['MONKEY_SELF_DEPLOYMENT_NAME']
+    options[:deployment] = ENV['MONKEY_SELF_DEPLOYMENT_NAME']
   end
 end
-=begin
-if ENV['EXECUTION_TRACE_LOG']
-  trace_log = File.open(ENV['EXECUTION_TRACE_LOG'], "w")
-else
-  trace_log = $stdout
-end
-usage = <<-EOS
-After setting the 'DEPLOYMENT' and 'REST_CONNECTION_LOG' environment variables, run the grinder using:
-
-grinder "testcase.rb" [breakline number]
-
-DEVELOPERS: Grinder will drop you into ruby-debug at an exception. Setting the 'MONKEY_NO_DEBUG' environment variable will turn off this behavior.
-
-Here are your environment variables:
-export DEPLOYMENT=#{ENV['DEPLOYMENT']}
-export REST_CONNECTION_LOG=#{ENV['REST_CONNECTION_LOG']}
-export MONKEY_NO_DEBUG=#{ENV['MONKEY_NO_DEBUG']}
-export MONKEY_NO_RESUME=#{ENV['MONKEY_NO_RESUME']}
-export EXECUTION_TRACE_LOG=#{ENV['EXECUTION_TRACE_LOG']}
-EOS
-
-
-raise usage unless ENV['DEPLOYMENT']
-raise usage unless ARGV[0] and File.exist?(ARGV[0])
-if ARGV[1]
-  @breakpoint = ARGV[1].to_i
-else
-  @breakpoint = 1000000
-end
-
 unless ENV['MONKEY_NO_DEBUG'] =~ /true/i
-  if ENV['DEPLOYMENT'] == ENV['MONKEY_SELF_DEPLOYMENT_NAME']
+  if options[:deployment] == ENV['MONKEY_SELF_DEPLOYMENT_NAME']
     confirm = ask("WARNING: You are about to run grinder on the deployment your virtualmonkey server is in. Are you sure you want to do this? (y/n)", lambda { |ans| true if (ans =~ /^[y,Y]{1}/) })
     raise "Aborting." unless confirm
   end
 end
 
-@testcase = File.open(ARGV[0], "r")
-testname = File.basename(ARGV[0])
-
-linenum = 1
-@resume = 0
-
-# Should we resume?
-test_states = "test_states"
-state_dir = File.join(test_states, ENV['DEPLOYMENT'])
-if File.directory?(state_dir)
-  unless ENV['MONKEY_NO_RESUME'] =~ /true/i
-    $stdout.syswrite "Resuming previous testcase...\n\n"
-    @state_file = File.open(File.join(state_dir, testname), "r")
-    if @state_file.mtime < @testcase.mtime
-      $stdout.syswrite "WARNING: testcase has been changed since state file.\n"
-      $stdout.syswrite "Scrapping previous testcase; Starting over...\n\n"
-      @state_file.close
-      File.delete(File.join(state_dir, testname))
-    else
-      begin
-        @resume += 1 if @state_file.readline
-      rescue EOFError => e
-        done = true
-      end while !done
-      @state_file.close
-    end
-  else
-    $stdout.syswrite "Scrapping previous testcase; Starting over...\n\n"
-    File.delete(File.join(state_dir, testname))
-  end
-else
-  Dir.mkdir(test_states) unless File.directory?(test_states)
-  Dir.mkdir(state_dir)
-end
-@state_file = File.open(File.join(state_dir, testname), "a")
-
-# Grinding
-done = false
-timer = Time.now
-runner_var = ""
-begin
-  line = @testcase.readline
-  if line =~ /((=)|(set_var))/ or (@resume < linenum and linenum <= @breakpoint)
-    if line =~ /(@*runner).*=/
-      runner_var = $1
-    end
-    unless line =~ /^[ \t]*#/ or line =~ /^[ \t]*$/
-      $stdout.syswrite("#{"=" * line.length}\n")
-      $stdout.syswrite(line)
-      $stdout.syswrite("#{"=" * line.length}\n")
-      line_timer = Time.now
-      eval(line)
-      line_elapsed = Time.now - line_timer
-      $stdout.syswrite("Success. Time Elapsed: #{line_elapsed} seconds\n")
-      sleep(0.01)
-    else
-      eval(line)
-    end
-    @state_file.syswrite(line) unless @resume > 0 and line =~ /((=)|(set_var))/
-  end
-  if linenum > @breakpoint
-    $stdout.syswrite "Halting test at breakpoint (line #{@breakpoint})\n\n"
-    done = true
-  else
-    linenum += 1
-  end
-rescue EOFError => e
-  @state_file.close
-  File.delete(File.join(state_dir, testname))
-  Dir.rmdir(state_dir)
-  done = true
-end while !done
-elapsed = Time.now - timer
-$stdout.syswrite "Total time elapsed: #{elapsed} seconds\n"
-if linenum > @breakpoint and ENV['MONKEY_NO_DEBUG'] !~ /true/i
-  eval("#{runner_var}.launch_irb_session(:debugger)")
-end
-=end
-
-# Trollop
-options = Trollop::options do
-  opt :tests, "Space-separated strings of tests to execute", :type => :strings
-  opt :file, "File name", :type => :string, :required => true
-  opt :deployment, "Full deployment name", :type => :string, :short => "-d"
-  opt :debug, "Enable inline debugging", :default => true, :short => "-g"
-  opt :no_resume, "Do not resume; start test from scratch"
-end
-# TODO: export trollop options to ENV variables
-ENV['TRACE_FILE'] ||= "/tmp/trace_file"
-
-VirtualMonkey::trace_log = [{"feature_file"=>options[:file]}]
-VirtualMonkey::readable_log = [{"feature_file"=>options[:file]}]
 test_case = VirtualMonkey::TestCase.new(options[:file], options)
 test_case.run(*options[:tests])
-

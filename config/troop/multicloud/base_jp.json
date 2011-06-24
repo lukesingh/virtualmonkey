@@ -2,7 +2,7 @@
   "tag":"MC_BASE_TROOP",
   "feature":"base.rb",
   "cloud_variables":"aws_ap_tokyo.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"base.json",
   "server_template_ids":[
     "91124"

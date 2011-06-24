@@ -9,7 +9,7 @@ module VirtualMonkey
         # check that the standard unified app is responding on port 80
         @servers.each do |server| 
           url_base = "#{server.dns_name}:#{80}"
-          behavior(:test_http_response, "Congratulations", "#{url_base}", 80)
+          test_http_response("Congratulations", "#{url_base}", 80)
         end
       end
   
@@ -30,7 +30,7 @@ module VirtualMonkey
   #            # bug was missing graphs.
   #          end
             passenger_plugins.each do |plugin|
-              monitor = obj_behavior(server, :get_sketchy_data, {'start' => -60,
+              monitor = server.get_sketchy_data({'start' => -60,
                                                                  'end' => -20,
                                                                  'plugin_name' => plugin['plugin_name'],
                                                                  'plugin_type' => plugin['plugin_type']})

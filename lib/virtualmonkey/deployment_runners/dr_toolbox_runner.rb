@@ -5,8 +5,8 @@ module VirtualMonkey
       include VirtualMonkey::Mixin::DrToolbox
       include VirtualMonkey::Mixin::Chef
 # once dr toolbox gets a terminate script, we can use the mixin for ebs..
-#    include VirtualMonkey::EBS
-      def lookup_scripts
+#    include VirtualMonkey::Mixin::EBS
+      def dr_toolbox_lookup_scripts
         scripts = [
                    [ 'setup_block_device', 'block_device::setup_block_device' ],
                    [ 'setup_continuous_backups_s3', 'block_device::setup_continuous_backups_s3' ],
@@ -25,7 +25,7 @@ module VirtualMonkey
                    [ 'do_restore_ebs', 'block_device::do_restore_ebs' ],
                    [ 'do_force_reset', 'block_device::do_force_reset' ]
                   ]
-        st = ServerTemplate.find(resource_id(s_one.server_template_href))
+        st = match_st_by_server(s_one)
         load_script_table(st,scripts)
       end
     end

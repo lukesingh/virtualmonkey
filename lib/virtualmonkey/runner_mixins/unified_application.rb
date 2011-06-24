@@ -25,17 +25,17 @@ module VirtualMonkey
       def run_unified_application_checks(set = @servers, port=8000)
         run_on = select_set(set)
         run_on.each do |server| 
-          behavior(:run_unified_application_check, server.dns_name, port)
+         run_unified_application_check(server.dns_name, port)
         end
       end
       
       # this is where ALL the generic application server checks live, this could get rather long but for now it's a single method with a sequence of checks
       def run_unified_application_check(dns_name, port=8000)
         url_base = "#{dns_name}:#{port}"
-        behavior(:test_http_response, "html serving succeeded", "#{url_base}/index.html", port) 
-        behavior(:test_http_response, "configuration=.*succeeded", "#{url_base}/appserver/", port) 
-        behavior(:test_http_response, "I am in the db", "#{url_base}/dbread/", port) 
-        behavior(:test_http_response, "hostname=", "#{url_base}/serverid/", port) 
+       test_http_response("html serving succeeded", "#{url_base}/index.html", port) 
+       test_http_response("configuration=.*succeeded", "#{url_base}/appserver/", port) 
+       test_http_response("I am in the db", "#{url_base}/dbread/", port) 
+       test_http_response("hostname=", "#{url_base}/serverid/", port) 
       end
       
     end

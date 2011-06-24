@@ -1,44 +1,22 @@
-#@base
-#
-# Feature: Base Server Test
-#   Tests the base server functions
-#
-# Scenario: base server test
-#
-# Given A simple deployment
-  @runner = VirtualMonkey::JenkinsRunner.new(ENV['DEPLOYMENT'])
+set :runner, VirtualMonkey::Runner::Jenkins
 
-  @runner.set_var(:set_variation_lineage)
-  @runner.set_var(:set_variation_container)
-  @runner.set_var(:set_variation_storage_type)
+before do
+  @runner.set_variation_lineage
+  @runner.set_variation_container
+  @runner.set_variation_storage_type
+  @runner.stop_all
+  @runner.launch_all
+  @runner.wait_for_all("operational")
+end
 
-# Then I should stop the servers
-  @runner.behavior(:stop_all)
-
-# Then I should launch all servers
-  @runner.behavior(:launch_all)
-
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
-
-  @runner.behavior(:do_prep)
-
-  @runner.behavior(:test_multicloud)
-
-# Then I should check that monitoring is enabled
-  @runner.behavior(:check_monitoring)
-
-# Then I should reboot the servers
-  @runner.behavior(:reboot_all)
-
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
-
-# Then I should check that monitoring is enabled
-  @runner.behavior(:check_monitoring)
-
-  @runner.behavior(:check_app_monitoring)
-
-  @runner.behavior(:test_http)
-
-  @runner.behavior(:run_logger_audit)
+test "default" do
+  @runner.do_prep
+  @runner.test_multicloud
+  @runner.check_monitoring
+  @runner.reboot_all
+  @runner.wait_for_all("operational")
+  @runner.check_monitoring
+  @runner.check_app_monitoring
+  @runner.test_http
+  @runner.run_logger_audit
+end

@@ -11,6 +11,7 @@ describe VirtualMonkey::TestCaseInterface do
     @options = {
       :deployment => "TIMR-MONKEY_SELF_TEST-cloud_1-745620-RightImage_CentOS_5.4_i386_v5.5", 
       :file => "/tmp/vmonk-testfile.rb",
+      :log => "/tmp/trace_file",
       #:no_resume => true,
       :tests => "success_script" }
 
@@ -34,16 +35,21 @@ end
 
 test "success_script" do
   puts 'im a great success'
+  @runner.test_deprecation
 end
 
 test "fail_script" do
+  @runner.transaction { puts "what the hell man" }
   @runner.transaction {
     puts "before fail"
     raise "yep, gonna fail this time" if File.exists?("/tmp/testflag")
     puts "after fail"
     `touch /tmp/i_was_here_the_monkey`
   }
-  @runner.transaction { puts "search_for_me" }
+  @runner.transaction { 
+puts "search_for_me" 
+    `touch /tmp/i_was_here_the_monkey`
+}
 end
 
 after do
@@ -52,15 +58,21 @@ end
 EOF
     File.open(@options[:file], "w") {|f| f.write(feature_file_content)} 
   end
-=begin
+
+  def check_trace(testcase, regex)
+    file = testcase.options[:log]
+    IO.read(file).should =~ regex
+  end
+
   it "tests success" do
     @options[:tests] = "success_script" 
     test_case = VirtualMonkey::TestCase.new(@options[:file], @options)
     test_case.run(*@options[:tests])
-
-    VirtualMonkey::readable_log.to_s.include?("success_script").should == true
+    check_trace(test_case, /success_script/)
+    check_trace(test_case, /test_deprecation/)
+      #VirtualMonkey::trace_log = []
   end
-=end
+
   it "resumes" do
     # causes error if this file exists
     `touch /tmp/testflag`
@@ -68,29 +80,25 @@ EOF
     @options[:tests] = "fail_script" 
     @options[:no_resume] = true
     test_case = VirtualMonkey::TestCase.new(@options[:file], @options)
+    # Test fails and raises an Error
     begin
       test_case.run(*@options[:tests])
     rescue
     end
 
-    puts VirtualMonkey::trace_log
-    VirtualMonkey::readable_log.to_s.include?("fail_script").should == true
-
+    #VirtualMonkey::readable_log.to_s.should =~ /fail_script/
+    #check_trace(test_case, /fail_script/)
     File.exists?('/tmp/i_was_here_the_monkey').should == false
-    VirtualMonkey::readable_log.to_s.include?("search_for_me").should == false
 
-    VirtualMonkey::trace_log = []
-    VirtualMonkey::readable_log = []
-
+      #VirtualMonkey::trace_log = []
     @options[:no_resume] = false
     FileUtils.rm_rf("/tmp/testflag")
     
     test_case = VirtualMonkey::TestCase.new(@options[:file], @options)
     test_case.run(*@options[:tests])
 
-    puts VirtualMonkey::trace_log
-    VirtualMonkey::readable_log.to_s.include?("fail_script").should == true
-    VirtualMonkey::readable_log.to_s.include?("search_for_me").should == true
+    check_trace(test_case, /fail_script/)
+
     File.exists?('/tmp/i_was_here_the_monkey').should == true
   end
 end

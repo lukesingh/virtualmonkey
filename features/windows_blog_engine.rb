@@ -1,27 +1,15 @@
-#@base
-#
-# Feature: Windows Blog Engine Server Test
-#   Tests the windows blog engine server functions
-#
-# Scenario: windows blog engine server test
-#
-# Given A simple deployment
-  @runner = VirtualMonkey::SimpleWindowsBlogRunner.new(ENV['DEPLOYMENT'])
+set :runner, VirtualMonkey::Runner::SimpleWindowsBlog
 
-# Then I should stop the servers
-  @runner.behavior(:stop_all)
+before do
+  @runner.stop_all
+  @runner.launch_all
+  @runner.wait_for_all("operational")
+end
 
-# Then I should launch all servers
-  @runner.behavior(:launch_all)
-
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
-
-# Then I should check that monitoring is enabled
-#  @runner.behavior(:check_monitoring)
-
-# Then I should check all the scripts in the template
-  @runner.behavior(:run_script_on_all, "backup_database")
-  @runner.behavior(:run_script_on_all, "backup_database_check")
-  @runner.behavior(:run_script_on_all, "drop_database")
-  @runner.behavior(:run_script_on_all, "restore_database")
+test "default" do
+#  @runner.check_monitoring
+  @runner.run_script_on_all("backup_database")
+  @runner.run_script_on_all("backup_database_check")
+  @runner.run_script_on_all("drop_database")
+  @runner.run_script_on_all("restore_database")
+end

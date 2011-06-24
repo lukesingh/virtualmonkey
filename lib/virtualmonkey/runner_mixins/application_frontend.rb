@@ -17,13 +17,13 @@ module VirtualMonkey
       end
   
       def run_reboot_operations
-        behavior(:reboot_all, true)
-        behavior(:run_reboot_checks)
+       reboot_all(true)
+       run_reboot_checks
       end
   
       def run_reboot_checks
-        behavior(:run_unified_application_checks, fe_servers, 80)
-        behavior(:run_unified_application_checks, app_servers)
+       run_unified_application_checks(fe_servers, 80)
+       run_unified_application_checks(app_servers)
       end
       
       def log_rotation_checks
@@ -32,11 +32,11 @@ module VirtualMonkey
         #  force_log_rotation(server)
         #  log_check(server,"/mnt/log/#{server.apache_str}/access.log.1")
         #end
-        behavior(:detect_os)
+       detect_os
   
         fe_servers.each do |server|
-          behavior(:force_log_rotation, server)
-          behavior(:log_check, server, "/mnt/log/#{server.apache_str}/haproxy.log.1")
+         force_log_rotation(server)
+         log_check(server, "/mnt/log/#{server.apache_str}/haproxy.log.1")
         end
       end
       

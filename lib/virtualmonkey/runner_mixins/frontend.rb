@@ -33,9 +33,9 @@ module VirtualMonkey
       end
   
       def frontend_checks
-        behavior(:detect_os)
+       detect_os
   
-        behavior(:run_unified_application_checks, fe_servers, 80)
+       run_unified_application_checks(fe_servers, 80)
   
         # check that all application servers exist in the haproxy config file on all fe_servers
         server_ips = Array.new
@@ -72,7 +72,7 @@ module VirtualMonkey
         end
   
         # restart apache and check that it succeeds
-        behavior(:run_script_on_set, 'apache_restart', fe_servers, true)
+       run_script_on_set('apache_restart', fe_servers, true)
         fe_servers.each_with_index do |server,i|
           response = nil
           count = 0
@@ -88,14 +88,14 @@ module VirtualMonkey
       end
   
       def cross_connect_frontends
-        options = { :LB_HOSTNAME => behavior(:get_lb_hostname_input) }
-        behavior(:run_script_on_set, 'connect', fe_servers, true, options)
+        options = { :LB_HOSTNAME =>get_lb_hostname_input }
+       run_script_on_set('connect', fe_servers, true, options)
       end
   
       def setup_https_vhost
-        behavior(:run_script_on_set, fe_servers, 'https_vhost')
+       run_script_on_set(fe_servers, 'https_vhost')
         fe_servers.each_with_index do |server,i|
-          behavior(:test_http_response, "html serving succeeded", "https://" + server.dns_name + "/index.html", "443")
+         test_http_response("html serving succeeded", "https://" + server.dns_name + "/index.html", "443")
         end
       end
   

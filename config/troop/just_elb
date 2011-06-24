@@ -1,6 +1,6 @@
 {
   "common_inputs":"php_elb.json",
-  "runner":"SimpleRunner",
+
   "server_template_ids":[
     "23288 23288"
   ],

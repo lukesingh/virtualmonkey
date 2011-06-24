@@ -1,6 +1,6 @@
 {
   "tag":"MYSQL_51_CHEF_TROOP",
-  "runner":"MysqlChefRunner",
+
   "common_inputs":"mysql_chef.json",
   "server_template_ids":[
     "107666"

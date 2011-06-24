@@ -1,7 +1,7 @@
 {
   "feature":"lamp_chef.rb",
   "cloud_variables":"all_clouds.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"lamp_chef.json",
   "tag":"MONKEY_LAMP_TESTING",
   "server_template_ids":[

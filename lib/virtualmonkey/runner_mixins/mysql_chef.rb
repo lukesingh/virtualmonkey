@@ -43,14 +43,14 @@ module VirtualMonkey
       end
   
       def test_s3
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
         probe(s_one, "touch /mnt/storage/monkey_was_here")
         sleep 10
-        behavior(:run_script, "do_backup_s3", s_one)
+       run_script("do_backup_s3", s_one)
         sleep 10
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 10
-        behavior(:run_script, "do_restore_s3", s_one)
+       run_script("do_restore_s3", s_one)
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
@@ -58,16 +58,16 @@ module VirtualMonkey
       end
   
       def test_ebs
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
         probe(s_one, "touch /mnt/storage/monkey_was_here")
         sleep 100
-        behavior(:run_script, "do_backup_ebs", s_one)
+       run_script("do_backup_ebs", s_one)
         wait_for_snapshots
         sleep 100
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
   # need to wait here for the volume status to settle (detaching)
         sleep 400
-        behavior(:run_script, "do_restore_ebs", s_one)
+       run_script("do_restore_ebs", s_one)
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
@@ -75,14 +75,14 @@ module VirtualMonkey
       end
   
       def test_cloud_files
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
         probe(s_one, "touch /mnt/storage/monkey_was_here")
         sleep 10
-        behavior(:run_script, "do_backup_cloud_files", s_one)
+       run_script("do_backup_cloud_files", s_one)
         sleep 10
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
         sleep 10
-        behavior(:run_script, "do_restore_cloud_files", s_one)
+       run_script("do_restore_cloud_files", s_one)
         probe(s_one, "ls /mnt/storage") do |result, status|
           raise "FATAL: no files found in the backup" if result == nil || result.empty?
           true
@@ -115,29 +115,29 @@ module VirtualMonkey
       # Performs steps necessary to bootstrap a MySQL Master server from a pristine state using a dumpfile.
       # * server<~Server> the server to use as MASTER
   #    def config_master_from_scratch_from_dumpfile(server)
-  #      behavior(:create_stripe_from_dumpfile, server)
+  #     create_stripe_from_dumpfile(server)
   #      probe(server, "service mysqld start") # TODO Check that it started?
   #TODO the service name depends on the OS
   #      server.spot_check_command("service mysql start")
-  #      behavior(:run_query, "create database mynewtest", server)
-  #      behavior(:set_master_dns, server)
+  #     run_query("create database mynewtest", server)
+  #     set_master_dns(server)
   #      # This sleep is to wait for DNS to settle - must sleep
   #      sleep 120
-  #      behavior(:run_script, "backup", server)
+  #     run_script("backup", server)
   #    end
   
       # Performs steps necessary to bootstrap a MySQL Master server from a pristine state.
       # * server<~Server> the server to use as MASTER
   #    def config_master_from_scratch(server)
-  #      behavior(:create_stripe, server)
+  #     create_stripe(server)
   #      probe(server, "service mysqld start") # TODO Check that it started?
   #TODO the service name depends on the OS
   #      server.spot_check_command("service mysql start")
-  #      behavior(:run_query, "create database mynewtest", server)
-  #      behavior(:set_master_dns, server)
+  #     run_query("create database mynewtest", server)
+  #     set_master_dns(server)
   #      # This sleep is to wait for DNS to settle - must sleep
   #      sleep 120
-  #      behavior(:run_script, "backup", server)
+  #     run_script("backup", server)
   #    end
   
       # Runs a mysql query on specified server.
@@ -151,14 +151,14 @@ module VirtualMonkey
       # Sets DNS record for the Master server to point at server
       # * server<~Server> the server to use as MASTER
   #    def set_master_dns(server)
-  #      behavior(:run_script, 'master_init', server)
+  #     run_script('master_init', server)
   #    end
   
       # Use the termination script to stop all the servers (this cleans up the volumes)
       def stop_all(wait=true)
         @servers.each { |s| obj_behavior(s, :stop) }
   
-        behavior(:wait_for_all, "stopped") if wait
+       wait_for_all("stopped") if wait
         # unset dns in our local cached copy..
         @servers.each { |s| s.params['dns-name'] = nil } 
       end
@@ -174,24 +174,24 @@ module VirtualMonkey
      
       def setup_block_device
   puts "SETUP_BLOCK_DEVICE"
-        behavior(:run_script, "setup_block_device", s_one)
+       run_script("setup_block_device", s_one)
       end
   
       def do_backup
   puts "BACKUP"
-        behavior(:run_script, "do_backup", s_one)
+       run_script("do_backup", s_one)
   puts "BAD BAD SLEEPING TIL SNAPSHOT IS COMPLETE"
         sleep 30
       end
   
       def do_restore
   puts "RESTORE"
-        behavior(:run_script, "do_restore", s_one)
+       run_script("do_restore", s_one)
       end
   
       def do_force_reset
   puts "RESET"
-        behavior(:run_script, "do_force_reset", s_one)
+       run_script("do_force_reset", s_one)
       end
   
       # releases records back into the shared DNS pool
@@ -218,18 +218,18 @@ module VirtualMonkey
   
   
   #    def promote_server(server)
-  #      behavior(:run_script, "promote", server)
+  #     run_script("promote", server)
   #    eu
   
   #    def slave_init_server(server)
-  #      behavior(:run_script, "slave_init", server)
+  #     run_script("slave_init", server)
   #    end
   
   #    def create_migration_script
   #      options = { "DB_EBS_PREFIX" => "text:regmysql",
   #              "DB_EBS_SIZE_MULTIPLIER" => "text:1",
   #              "EBS_STRIPE_COUNT" => "text:#{@stripe_count}" }
-  #      behavior(:run_script, 'create_migrate_script', s_one, options)
+  #     run_script('create_migrate_script', s_one, options)
   #    end
   
       # These are mysql specific checks (used by mysql_runner and lamp_runner)
@@ -274,30 +274,30 @@ module VirtualMonkey
   #    end
   
   #    def init_slave_from_slave_backup
-  #      behavior(:config_master_from_scratch, s_one)
-  #      behavior(:run_script, "freeze_backups", s_one)
-  #      behavior(:wait_for_snapshots)
-  #      behavior(:slave_init_server, s_two)
-  #      behavior(:run_script, "backup", s_two)
+  #     config_master_from_scratch(s_one)
+  #     run_script("freeze_backups", s_one)
+  #     wait_for_snapshots
+  #     slave_init_server(s_two)
+  #     run_script("backup", s_two)
   #      obj_behavior(s_two, :relaunch)
   #      s_one['dns-name'] = nil
   #      obj_behavior(s_two, :wait_for_operational_with_dns)
-  #      behavior(:wait_for_snapshots)
+  #     wait_for_snapshots
   #      #sleep 300
-  #      behavior(:slave_init_server, s_two)
+  #     slave_init_server(s_two)
   #    end
   
   #    def run_promotion_operations
-  #      behavior(:config_master_from_scratch, s_one)
+  #     config_master_from_scratch(s_one)
   #      obj_behavior(s_one, :relaunch)
   #      s_one.dns_name = nil
-  #      behavior(:wait_for_snapshots)
+  #     wait_for_snapshots
   # need to wait for ebs snapshot, otherwise this could easily fail
-  #      behavior(:restore_server, s_two)
+  #     restore_server(s_two)
   #      obj_behavior(s_one, :wait_for_operational_with_dns)
-  #      behavior(:wait_for_snapshots)
-  #      behavior(:slave_init_server, s_one)
-  #      behavior(:promote_server, s_one)
+  #     wait_for_snapshots
+  #     slave_init_server(s_one)
+  #     promote_server(s_one)
   #    end
   #
       def run_reboot_operations
@@ -307,15 +307,15 @@ module VirtualMonkey
           obj_behavior(s, :reboot, true)
           obj_behavior(s, :wait_for_state, "operational")
         end
-        behavior(:wait_for_all, "operational")
-        behavior(:run_reboot_checks)
+       wait_for_all("operational")
+       run_reboot_checks
       end
   
       # This is where we perform multiple checks on the deployment after a reboot.
       def run_reboot_checks
         # one simple check we can do is the backup.  Backup can fail if anything is amiss
         @servers.each do |server|
-          behavior(:run_script, "do_backup", server)
+         run_script("do_backup", server)
         end
       end
   
@@ -323,7 +323,7 @@ module VirtualMonkey
   #      obj_behavior(s_one, :relaunch)
   #      s_one.dns_name = nil
   #      obj_behavior(s_one, :wait_for_operational_with_dns)
-  #      behavior(:run_script, 'restore', s_one, { "OPT_DB_RESTORE_TIMESTAMP_OVERRIDE" => "text:#{find_snapshot_timestamp}" })
+  #     run_script('restore', s_one, { "OPT_DB_RESTORE_TIMESTAMP_OVERRIDE" => "text:#{find_snapshot_timestamp}" })
   #    end
   
   # Check for specific MySQL data.
@@ -341,18 +341,18 @@ module VirtualMonkey
             for ii in 1...100
   #TODO: have to select db with every call.  figure a better way to do this and get rid of fast and ugly
   # cut and past hack.
-              behavior(:run_query, "show databases", server)
-              behavior(:run_query, "create database test#{ii}", server)
-              behavior(:run_query, "use test#{ii}; create table test#{ii}(test text)", server)
-              behavior(:run_query, "use test#{ii};show tables", server)
-              behavior(:run_query, "use test#{ii};insert into test#{ii} values ('1')", server)
-              behavior(:run_query, "use test#{ii};update test#{ii} set test='2'", server)
-              behavior(:run_query, "use test#{ii};select * from test#{ii}", server)
-              behavior(:run_query, "use test#{ii};delete from test#{ii}", server)
-              behavior(:run_query, "show variables", server)
-              behavior(:run_query, "show status", server)
-              behavior(:run_query, "use test#{ii};grant select on test.* to root", server)
-              behavior(:run_query, "use test#{ii};alter table test#{ii} rename to test2#{ii}", server)
+             run_query("show databases", server)
+             run_query("create database test#{ii}", server)
+             run_query("use test#{ii}; create table test#{ii}(test text)", server)
+             run_query("use test#{ii};show tables", server)
+             run_query("use test#{ii};insert into test#{ii} values ('1')", server)
+             run_query("use test#{ii};update test#{ii} set test='2'", server)
+             run_query("use test#{ii};select * from test#{ii}", server)
+             run_query("use test#{ii};delete from test#{ii}", server)
+             run_query("show variables", server)
+             run_query("show status", server)
+             run_query("use test#{ii};grant select on test.* to root", server)
+             run_query("use test#{ii};alter table test#{ii} rename to test2#{ii}", server)
             end
             mysql_plugins.each do |plugin|
               monitor = obj_behavior(server, :get_sketchy_data, { 'start' => -60,
@@ -375,11 +375,11 @@ module VirtualMonkey
       end
   
   #    def create_master
-  #      behavior(:config_master_from_scratch, s_one)
+  #     config_master_from_scratch(s_one)
   #    end
   
   #    def create_master_from_dumpfile
-  #      behavior(:config_master_from_scratch_from_dumpfile, s_one)
+  #     config_master_from_scratch_from_dumpfile(s_one)
   #    end
   
     end

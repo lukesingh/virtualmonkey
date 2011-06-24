@@ -1,70 +1,42 @@
-#@mysql_5.x
-#Feature: mysql 5.x v2 or v4 promote operations test
-#  Tests the RightScale premium ServerTemplate
-#
-#  Scenario: Setup 2 server deployment and run basic cluster failover operations
-#
-# PHASE 1) Bootstrap and test promote
-#
-# Given A MySQL deployment
-  @runner = VirtualMonkey::MysqlRunner.new(ENV['DEPLOYMENT'])
+set :runner, VirtualMonkey::Runner::Mysql
 
-# Then I should stop the servers
-  @runner.behavior(:stop_all)
+before do
+  @runner.stop_all
+  @runner.set_variation_lineage
+  @runner.set_variation_stripe_count(1)
+  @runner.setup_dns("virtualmonkey_dyndns") # DynDNS
+  @runner.launch_all
+end
 
-# Then I should set a variation lineage
-  @runner.set_var(:set_variation_lineage)
-
-# Then I should set a variation stripe count of "1"
-  @runner.set_var(:set_variation_stripe_count, 1)
-
-# Then I should set a variation MySQL DNS
-  @runner.set_var(:setup_dns, "virtualmonkey_dyndns") # DynDNS
-
-# Then I should launch all servers
-  @runner.behavior(:launch_all)
-
-# Then I should wait for the state of "all" servers to be "operational"
-  @runner.behavior(:wait_for_all, "operational")
-
-# Then I should test promotion operations on the deployment
-  @runner.behavior(:run_promotion_operations)
-
-# Then I should run mysql checks
-  @runner.behavior(:run_checks)
-
-# Then I should run mysqlslap stress test
-#  @runner.behavior(:run_mysqlslap_check)
-
-# Then I should check that ulimit was set correctly
-#  @runner.behavior(:ulimit_check)
+test "default" do
+  @runner.wait_for_all("operational")
+  @runner.run_promotion_operations
+  @runner.run_checks
+#  @runner.run_mysqlslap_check
+#  @runner.ulimit_check
   @runner.probe(".*", "su - mysql -s /bin/bash -c \"ulimit -n\"") { |r,st| r.to_i > 1024 }
-
-# Then I should check that monitoring is enabled
-  @runner.behavior(:check_monitoring)
-  @runner.behavior(:check_mysql_monitoring)
+  @runner.check_monitoring
+  @runner.check_mysql_monitoring
 
 #
 # PHASE 2) Reboot
 #
 
-# Then I should test reboot operations on the deployment
-  @runner.behavior(:run_reboot_operations)
+  @runner.run_reboot_operations
 
 #
 # PHASE 3) Additional Tests
 #
 
-# Then I should run a restore using OPT_DB_RESTORE_TIMESTAMP_OVERRIDE
-  @runner.behavior(:run_restore_with_timestamp_override)
+  @runner.run_restore_with_timestamp_override
 
-#  @runner.behavior(:run_logger_audit)
+#  @runner.run_logger_audit
 # 
 # PHASE 4) Terminate
 #
 
-# Then I should terminate the servers
-  @runner.behavior(:stop_all, true)
+  @runner.stop_all(true)
 
-# Then I should release the DNS
-  @runner.behavior(:release_dns)
+
+  @runner.release_dns
+end

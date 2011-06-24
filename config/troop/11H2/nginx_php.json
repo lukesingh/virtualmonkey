@@ -1,6 +1,6 @@
 {
   "feature":"nginx_pass_rails.rb",
-  "runner":"SimpleRunner",
+
   "server_template_ids":[
     "109707",
     "109707",

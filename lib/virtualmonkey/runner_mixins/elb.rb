@@ -59,7 +59,7 @@ module VirtualMonkey
       
       # The ELB should be serving up the unified app after boot
       def run_elb_checks
-        behavior(:run_unified_application_check, elb_href, ELB_PORT)
+       run_unified_application_check(elb_href, ELB_PORT)
       end
       
       # Check if :all or :none of the app servers are registered
@@ -86,13 +86,13 @@ module VirtualMonkey
       
       def elb_disconnect_all
         @servers.each do |server|
-          behavior(:disconnect_server, server)
+         disconnect_server(server)
         end
       end
       
       # Used to make sure everyone is disconnected
       def elb_response_code(elb_expected_code)
-        behavior(:test_http_response, elb_expected_code, elb_href, ELB_PORT)
+       test_http_response(elb_expected_code, elb_href, ELB_PORT)
       end
       
       # Grab the scripts we plan to excersize
@@ -107,12 +107,12 @@ module VirtualMonkey
       
       # This is really just a PHP server check. relocate?
       def log_rotation_checks
-        behavior(:detect_os)
+       detect_os
         
         # this works for php
         app_servers.each do |server|
-          behavior(:force_log_rotation, server)
-          behavior(:log_check, server, "/mnt/log/#{server.apache_str}/access.log.1")
+         force_log_rotation(server)
+         log_check(server, "/mnt/log/#{server.apache_str}/access.log.1")
         end
       end
       
@@ -149,12 +149,12 @@ module VirtualMonkey
       
       # run the ELB connect script
       def connect_server(server)
-        behavior(:run_script, 'connect', server)
+       run_script('connect', server)
       end
   
       # run the ELB disconnect script
       def disconnect_server(server)
-        behavior(:run_script, 'disconnect', server)
+       run_script('disconnect', server)
       end
       
      end

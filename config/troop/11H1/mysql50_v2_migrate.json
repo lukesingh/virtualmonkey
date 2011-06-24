@@ -2,7 +2,7 @@
   "tag":"MYSQL_50_TO_DBM_TROOP",
   "feature":"mysql_v2_upgrade_dbmanager.rb",
   "common_inputs":"mysql.json",
-  "runner":"MysqlV2MigrationRunner",
+
   "server_template_ids":[
     "27418",
     "84649"

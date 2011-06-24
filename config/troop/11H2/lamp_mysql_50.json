@@ -2,7 +2,7 @@
   "tag":"LAMP_MYSQL50_TROOP",
   "feature":"lamp.rb",
   "cloud_variables":"all_clouds.json",
-  "runner":"SimpleRunner",
+
   "common_inputs":"lamp_11H2.json",
   "server_template_ids":[
     "90665"

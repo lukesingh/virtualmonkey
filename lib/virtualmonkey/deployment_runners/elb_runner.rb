@@ -4,8 +4,8 @@ module VirtualMonkey
       include VirtualMonkey::Mixin::DeploymentBase
       include VirtualMonkey::Mixin::ELB
     
-      def initialize(args)
-        super(args)
+      def initialize(*args)
+        super(*args)
         raise "FATAL: ELBRunner must run on a single-cloud AWS deployment" unless @deployment.cloud_id
         endpoint_url = ELBS[@deployment.cloud_id][:endpoint]
         puts "USING EP: #{endpoint_url}"

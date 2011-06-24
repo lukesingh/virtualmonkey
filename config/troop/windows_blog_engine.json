@@ -2,7 +2,7 @@
   "tag":"MD_BLOG_ENGINE_TROOP",
   "feature":"windows_blog_engine.rb",
   "cloud_variables":"aws_clouds.json",
-  "runner":"SimpleWindowsRunner",
+
   "common_inputs":"windows_blog_engine.json",
   "server_template_ids":[
     "68786"

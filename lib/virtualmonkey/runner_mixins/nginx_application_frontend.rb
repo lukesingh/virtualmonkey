@@ -10,15 +10,15 @@ module VirtualMonkey
         detect_os
   
         fe_servers.each do |server|
-          behavior(:force_log_rotation, server)
-          behavior(:log_check, server, "/var/log/nginx/*access.log.1*")
+         force_log_rotation(server)
+         log_check(server, "/var/log/nginx/*access.log.1*")
         end
       end
   
       def frontend_checks
-        behavior(:detect_os)
+       detect_os
   
-        behavior(:run_unified_application_checks, fe_servers, 80)
+       run_unified_application_checks(fe_servers, 80)
   
         # check that all application servers exist in the Nginx config file on all fe_servers
         server_ips = Array.new
