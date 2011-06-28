@@ -7,7 +7,7 @@ module VirtualMonkey
       @@options = Trollop::options do
         opt :deployment, "regex string to use for matching deployment", :type => :string, :short => '-d', :required => true
         opt :feature, "path to feature(s) to run against the deployments", :type => :string
-        opt :breakpoint, "feature file line to stop at", :type => :integer, :short => '-b'
+#        opt :breakpoint, "feature file line to stop at", :type => :integer, :short => '-b'
         opt :copies, "number of copies to make (default is 1)", :type => :integer, :short => '-c'
         opt :yes, "Turn off confirmation", :short => "-y"
         opt :verbose, "Print all output to STDOUT as well as the log files", :short => "-v"

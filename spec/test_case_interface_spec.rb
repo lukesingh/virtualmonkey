@@ -46,6 +46,8 @@ test "fail_script" do
     puts "after fail"
     `touch /tmp/i_was_here_the_monkey`
   }
+  s = Server.new('dns-name' => 'localhost');
+  @runner.probe(s, 'hostname');
   @runner.transaction { 
 puts "search_for_me" 
     `touch /tmp/i_was_here_the_monkey`
