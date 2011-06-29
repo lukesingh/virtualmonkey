@@ -1,5 +1,5 @@
 {
-  "tag":"TROOP_T^_APACHE_HAPROXY",
+  "prefix":"TROOP_T^_APACHE_HAPROXY",
   "feature":"lb-apache-haproxy.rb",
   "common_inputs":"tomcat.json",
 

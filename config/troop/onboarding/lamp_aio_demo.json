@@ -1,5 +1,5 @@
 {
-  "tag":"LAMP_AIO_TRIAL_TROOP",
+  "prefix":"LAMP_AIO_TRIAL_TROOP",
   "feature":"nginx_pass_aio.rb",
   "cloud_variables":"aws_us_east.json",
 

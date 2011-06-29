@@ -1,5 +1,5 @@
 {
-  "tag":"PHP_ELB_TROOP",
+  "prefix":"PHP_ELB_TROOP",
   "feature":"php_elb.rb",
 
   "server_template_ids":[

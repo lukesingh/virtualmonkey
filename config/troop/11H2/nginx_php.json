@@ -9,5 +9,5 @@
   ],
   "cloud_variables":"aws_us_east.json",
   "common_inputs":"php.json",
-  "tag":"TROOP_NGNXPHP"
+  "prefix":"TROOP_NGNXPHP"
 }

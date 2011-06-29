@@ -5,6 +5,6 @@
     "23288 23288"
   ],
   "cloud_variables":"all_clouds.json",
-  "tag":"ELBBEATDOWN",
+  "prefix":"ELBBEATDOWN",
   "feature":"elb_create_delete.feature"
 }

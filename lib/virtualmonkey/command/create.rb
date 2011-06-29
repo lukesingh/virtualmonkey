@@ -5,18 +5,14 @@ module VirtualMonkey
     def self.create
       raise "Aborting" unless VirtualMonkey::Toolbox::api0_1?
       @@options = Trollop::options do
-        opt :server_template_ids, "ServerTemplate ids or names to use for creating the deployment.  Use one ID or name per server that you would like to be in the deployment.  Accepts space-separated integers or strings (using quotes to , or one argument per id. Eg. -s 23747 23747", :type => :strings, :required => true, :short => '-s'
-        opt :common_inputs, "Paths to common input json files to load and set on all deployments.  Accepts space separated pathnames or one argument per pathname.  Eg. -c config/mysql_inputs.json -c config/other_inputs.json", :type => :strings, :required => true, :short => '-c'
-        opt :tag, "Tag to use as nickname prefix for all deployments.", :type => :string, :required => true, :short => '-t'
-        opt :cloud_variables, "Path to json files containing common inputs and variables per cloud. See config/cloud_variables.json.example", :type => :strings, :short => '-v'
-        opt :clouds, "Space-separated list of cloud_ids to use", :type => :integers, :short => '-i'
-        opt :only, "Regex string to use for subselection matching on MCIs to enumerate Eg. --only Ubuntu", :type => :string
-        opt :no_spot, "Do not use spot instances"
-        opt :single_deployment, "specify whether you want a single deployment for a single server_template", :short =>'-z'
+        text @@available_commands[:create]
+        eval(VirtualMonkey::Command::use_options(:config_file, :clouds, :only, :no_spot, :one_deploy, :prefix))
       end
-      raise "Either --cloud_variables or --clouds is required" unless @@options[:cloud_variables] or @@options[:clouds]
+
+      raise "--config_file is required" unless @@options[:config_file]
       #raise "You must select a single cloud id to create a singe deployment" if( @@options[:single_deployment] && (@@options[:cloud_override] == nil || @@options[:cloud_override].length != 1))  # you must select at most and at minimum 1 cloud to work on when the -z is selected
-      @@dm = DeploymentMonk.new(@@options[:tag], @@options[:server_template_ids],[],false, @@options[:single_deployment])
+      load_config_file
+      @@dm = DeploymentMonk.new(@@options[:prefix], @@options[:server_template_ids],[],false, @@options[:one_deploy])
       create_logic
     end
   end

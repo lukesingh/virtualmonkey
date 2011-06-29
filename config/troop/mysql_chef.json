@@ -1,5 +1,5 @@
 {
-  "tag":"MYSQL_51_CHEF_TROOP",
+  "prefix":"MYSQL_51_CHEF_TROOP",
 
   "common_inputs":"mysql_chef.json",
   "server_template_ids":[

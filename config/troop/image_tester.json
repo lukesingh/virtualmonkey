@@ -1,5 +1,5 @@
 {
-  "tag":"JEREMYDEI1111_LUCID_IMG_TEST",
+  "prefix":"JEREMYDEI1111_LUCID_IMG_TEST",
   "feature":"image_tester.rb",
   "cloud_variables":"aws_clouds.json",
 

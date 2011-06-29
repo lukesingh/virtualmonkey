@@ -1,5 +1,5 @@
 {
-  "tag":"MD_QUICK_START_TROOP",
+  "prefix":"MD_QUICK_START_TROOP",
   "feature":"base.rb",
   "cloud_variables":"aws_clouds.json",
 

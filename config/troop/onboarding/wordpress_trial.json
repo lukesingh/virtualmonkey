@@ -1,5 +1,5 @@
 {
-  "tag":"WORDPRESS_LAMP",
+  "prefix":"WORDPRESS_LAMP",
   "feature":"wordpress_demo.rb",
   "cloud_variables":"aws_us_east.json",
 

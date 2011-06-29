@@ -1,5 +1,5 @@
 {
-  "tag":"MD_ASP.NET_AIO_TROOP",
+  "prefix":"MD_ASP.NET_AIO_TROOP",
   "feature":"windows_net_aio.rb",
   "cloud_variables":"aws_clouds.json",
 

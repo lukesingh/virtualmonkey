@@ -1,5 +1,5 @@
 {
-  "tag":"MD_BLOG_ENGINE_TROOP",
+  "prefix":"MD_BLOG_ENGINE_TROOP",
   "feature":"windows_blog_engine.rb",
   "cloud_variables":"aws_clouds.json",
 

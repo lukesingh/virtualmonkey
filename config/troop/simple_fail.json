@@ -1,7 +1,7 @@
 {
 
   "common_inputs":"mysql.json",
-  "tag":"SIMPLECRUISE",
+  "prefix":"SIMPLECRUISE",
   "server_template_ids":[
     "27418",
     "27418"

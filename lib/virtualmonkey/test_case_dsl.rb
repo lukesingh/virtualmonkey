@@ -55,9 +55,12 @@ module VirtualMonkey
       # Set up tests_to_run
       tests_to_run = @tests_to_resume if @tests_to_resume
       tests_to_run = @test.keys if tests_to_run.empty?
-      # Add the
+      # Add the tests to the tracelog
       VirtualMonkey::trace_log.first["tests"] = tests_to_run
       # Before
+      if @options[:no_resume] and @clean_start
+        @clean_start.call
+      end
       if @before[:all]
         @runner.write_readable_log("============== BEFORE ALL ==============")
         @before[:all].call
@@ -95,6 +98,10 @@ module VirtualMonkey
       else
         raise "Need a VirtualMonkey::Runner Class!"
       end
+    end
+
+    def clean_start(&block)
+      @clean_start = block
     end
 
     def before(*args, &block)

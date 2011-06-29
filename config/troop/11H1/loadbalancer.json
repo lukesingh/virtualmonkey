@@ -1,5 +1,5 @@
 {
-  "tag":"APACHE_HAPROXY_TROOP",
+  "prefix":"APACHE_HAPROXY_TROOP",
   "feature":"lb-apache-haproxy.rb",
   "common_inputs":[ "haproxy.json",
                     "php.json",

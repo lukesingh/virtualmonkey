@@ -1,5 +1,25 @@
 module VirtualMonkey
   module Command
+    def self.load_config_file
+      raise "--config_file is required!" unless @@options[:config_file]
+      config = JSON::parse(IO.read(@@options[:config_file]))
+      @@options[:prefix] += "-" if @@options[:prefix]
+      @@options[:prefix] = "" unless @@options[:prefix]
+      @@options[:prefix] += config['prefix']
+      @@options[:common_inputs] = config['common_inputs'].map { |cipath| File.join(@@ci_dir, cipath) }
+      @@options[:feature] = File.join(@@features_dir, config['feature'])
+      @@options[:runner] ||= get_runner_class
+      @@options[:terminate] = true if @@command =~ /troop|destroy/
+      @@options[:clouds] = load_clouds(config)
+      @@options[:server_template_ids] = config['server_template_ids']
+    end
+
+    def self.load_clouds(config)
+      # TODO Multicloud Deployments
+      return config['clouds'] if config['clouds']
+      VirtualMonkey::Toolbox::get_available_clouds.map { |hsh| hsh["cloud_id"].to_i }
+    end
+
     # Encapsulates the logic for selecting a subset of deployments
     def self.select_only_logic(message)
       @@do_these ||= @@dm.deployments
@@ -30,10 +50,10 @@ module VirtualMonkey
       raise "Aborting" unless VirtualMonkey::Toolbox::api0_1?
       if @@options[:clouds]
         @@dm.load_clouds(@@options[:clouds])
-      elsif @@options[:cloud_variables]
-        @@options[:cloud_variables].each { |cvpath| @@dm.load_cloud_variables(cvpath) }
+#      elsif @@options[:cloud_variables]
+#        @@options[:cloud_variables].each { |cvpath| @@dm.load_cloud_variables(cvpath) }
       else
-        raise "Usage Error! Need either --clouds or --cloud_variables"
+        raise "Usage Error! Need --clouds"
       end
       @@options[:common_inputs].each { |cipath| @@dm.load_common_inputs(cipath) }
       @@dm.generate_variations(@@options)
@@ -44,21 +64,18 @@ module VirtualMonkey
     # running "successful" servers through the log auditor/trainer.
     def self.run_logic
       raise "Aborting" unless VirtualMonkey::Toolbox::api0_1?
-      @@options[:runner] = get_runner_class
+      @@options[:runner] ||= get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
 
       EM.run {
         @@gm ||= GrinderMonk.new
-        @@dm ||= DeploymentMonk.new(@@options[:tag])
-        @@options[:runner] = get_runner_class
+        @@dm ||= DeploymentMonk.new(@@options[:prefix])
+        @@options[:runner] ||= get_runner_class
         select_only_logic("Run tests on")
 
         @@gm.options = @@options
 
         @@gm.run_tests(@@do_these, @@options[:feature])
-#        @@do_these.each do |deploy|
-#          @@gm.run_test(deploy, @@options[:feature])
-#        end
         @@remaining_jobs = @@gm.jobs.dup
 
         watch = EM.add_periodic_timer(10) {
@@ -70,9 +87,7 @@ module VirtualMonkey
           if @@options[:terminate] and not (@@options[:list_trainer] or @@options[:qa])
             @@remaining_jobs.each do |job|
               if job.status == 0
-                if @@command !~ /troop/ or @@options[:step] =~ /(all)|(destroy)/
-                  destroy_job_logic(job)
-                end
+                destroy_job_logic(job)
               end
             end
           end
@@ -81,9 +96,7 @@ module VirtualMonkey
           @@remaining_jobs.each do |job|
             if job.status == 0
               audit_log_deployment_logic(job.deployment, :interactive)
-              if @@command !~ /troop/ or @@options[:step] =~ /(all)|(destroy)/
-                destroy_job_logic(job) if @@options[:terminate]
-              end
+              destroy_job_logic(job) if @@options[:terminate]
             end
           end
         end
@@ -92,26 +105,26 @@ module VirtualMonkey
 
     # Encapsulates the logic for running through the log auditor/trainer on a single deployment
     def self.audit_log_deployment_logic(deployment, interactive = false)
-      @@options[:runner] = get_runner_class
+      @@options[:runner] ||= get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(deployment.nickname)")
+      runner = @@options[:runner].new(deployment.nickname)
       puts runner.run_logger_audit(interactive, @@options[:qa])
     end
 
     # Encapsulates the logic for destroying the deployment from a single job
     def self.destroy_job_logic(job)
-      @@options[:runner] = get_runner_class
+      @@options[:runner] ||= get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
-      runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(job.deployment.nickname)")
+      runner = @@options[:runner].new(job.deployment.nickname)
       puts "Destroying successful deployment: #{runner.deployment.nickname}"
       runner.stop_all(false)
-      runner.deployment.destroy unless @@options[:no_delete] or @@command =~ /run|clone/
+      runner.deployment.destroy unless @@options[:keep] or @@command =~ /run|clone/
       @@remaining_jobs.delete(job)
       #Release DNS logic
-      if runner.respond_to?(:release_dns) and not @@options[:no_delete]
+      if runner.respond_to?(:release_dns) and not @@options[:keep]
         release_all_dns_domains(runner.deployment.href)
       end
-      if runner.respond_to?(:release_container) and not @@options[:no_delete]
+      if runner.respond_to?(:release_container) and not @@options[:keep]
         runner.release_container
       end
     end
@@ -119,11 +132,11 @@ module VirtualMonkey
     # Encapsulates the logic for destroying all matched deployments
     def self.destroy_all_logic
       raise "Aborting" unless VirtualMonkey::Toolbox::api0_1?
-      @@options[:runner] = get_runner_class
+      @@options[:runner] ||= get_runner_class
       raise "FATAL: Could not determine runner class" unless @@options[:runner]
       @@do_these ||= @@dm.deployments
       @@do_these.each do |deploy|
-        runner = eval("VirtualMonkey::Runner::#{@@options[:runner]}.new(deploy.nickname)")
+        runner = @@options[:runner].new(deploy.nickname)
         runner.stop_all(false)
         state_dir = File.join(@@global_state_dir, deploy.nickname)
         if File.directory?(state_dir)
@@ -133,18 +146,18 @@ module VirtualMonkey
               File.delete(File.join(state_dir, state_file))
             end 
           end 
-          Dir.rmdir(state_dir)
+          FileUtils.rm_rf(state_dir)
         end 
         #Release DNS logic
-        if runner.respond_to?(:release_dns) and not @@options[:no_delete]
+        if runner.respond_to?(:release_dns) and not @@options[:keep]
           release_all_dns_domains(deploy.href)
         end
-        if runner.respond_to?(:release_container) and not @@options[:no_delete]
+        if runner.respond_to?(:release_container) and not @@options[:keep]
           runner.release_container
         end
       end 
 
-      @@dm.destroy_all unless @@options[:no_delete]
+      @@dm.destroy_all unless @@options[:keep]
     end
 
     # Encapsulates the logic for releasing the DNS entries for a single deployment, no matter what DNS it used
@@ -163,21 +176,8 @@ module VirtualMonkey
     # Encapsulates the logic for detecting what runner is used in a test case file
     def self.get_runner_class #returns class string
       return @@options[:runner] if @@options[:runner]
-      return @@options[:terminate] if @@options[:terminate].is_a?(String)
       return nil unless @@options[:feature]
-=begin
-      ret = nil 
-      File.open(@@options[:feature], "r") { |f| 
-        begin
-          line = f.readline
-          ret = $1 if line =~ /set.*VirtualMonkey::Runner::([^ ]*)/
-        rescue EOFError => e
-          ret = ""
-        end while !ret
-      }   
-      return (ret == "" ? nil : ret)
-=end
-      return VirtualMonkey::TestCase.new(@@options[:feature]).options[:runner].to_s.split("::").last
+      return VirtualMonkey::TestCase.new(@@options[:feature]).options[:runner]
     end
   end
 end

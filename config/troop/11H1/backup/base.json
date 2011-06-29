@@ -1,5 +1,5 @@
 {
-  "tag":"TROOP_BASE",
+  "prefix":"TROOP_BASE",
   "feature":"base.rb",
   "cloud_variables":"all_clouds.json",
 

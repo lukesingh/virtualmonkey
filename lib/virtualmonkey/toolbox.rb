@@ -40,7 +40,7 @@ module VirtualMonkey
     def api1_5?
       unless class_variable_defined?("@@api1_5")
         begin
-          McServer.find_all
+          Cloud.find_all
           @@api1_5 = true
         rescue
           @@api1_5 = false

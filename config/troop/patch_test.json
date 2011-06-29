@@ -1,5 +1,5 @@
 {
-  "tag":"PATCH_TEST_TROOP",
+  "prefix":"PATCH_TEST_TROOP",
   "feature":"patch_test.rb",
   "cloud_variables":"aws_us_east.json",
 

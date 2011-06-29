@@ -1,5 +1,5 @@
 {
-  "tag":"TROOP_LAMP_MYSQL51",
+  "prefix":"TROOP_LAMP_MYSQL51",
   "feature":"lamp.rb",
   "cloud_variables":"all_clouds.json",
 

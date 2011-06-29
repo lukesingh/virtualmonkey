@@ -1,5 +1,5 @@
 {
-  "tag":"MYSQL_51_TROOP_AWSDNS",
+  "prefix":"MYSQL_51_TROOP_AWSDNS",
   "common_inputs":"mysql.json",
   "server_template_ids":[
     "84650",

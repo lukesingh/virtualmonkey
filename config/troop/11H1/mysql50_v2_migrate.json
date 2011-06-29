@@ -1,5 +1,5 @@
 {
-  "tag":"MYSQL_50_TO_DBM_TROOP",
+  "prefix":"MYSQL_50_TO_DBM_TROOP",
   "feature":"mysql_v2_upgrade_dbmanager.rb",
   "common_inputs":"mysql.json",
 

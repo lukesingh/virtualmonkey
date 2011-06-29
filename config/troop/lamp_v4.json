@@ -3,7 +3,7 @@
   "cloud_variables":"aws_us_west.json",
 
   "common_inputs":"lamp.json",
-  "tag":"MONKEY_LAMP_TESTING",
+  "prefix":"MONKEY_LAMP_TESTING",
   "server_template_ids":[
     "8942"
   ]

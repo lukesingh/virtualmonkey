@@ -1,5 +1,5 @@
 {
-  "tag":"PASS_TROOP",
+  "prefix":"PASS_TROOP",
   "feature":"nginx_pass_aio.rb",
   "cloud_variables":"aws_us_east.json",
 

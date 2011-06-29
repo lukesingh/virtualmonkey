@@ -1,5 +1,5 @@
 {
-  "tag":"PGSQL_TROOP",
+  "prefix":"PGSQL_TROOP",
 
   "common_inputs":"postgres.json",
   "server_template_ids":[

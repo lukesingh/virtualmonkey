@@ -32,8 +32,11 @@ module VirtualMonkey
       @@global_state_dir = File.join(File.dirname(__FILE__), "..", "..", "test_states")
       @@features_dir = File.join(File.dirname(__FILE__), "..", "..", "features")
       @@cfg_dir = File.join(File.dirname(__FILE__), "..", "..", "config")
+      @@runner_dir = File.join(File.dirname(__FILE__), "deployment_runners")
+      @@mixin_dir = File.join(File.dirname(__FILE__), "runner_mixins")
       @@cv_dir = File.join(@@cfg_dir, "cloud_variables")
       @@ci_dir = File.join(@@cfg_dir, "common_inputs")
+      @@troop_dir = File.join(@@cfg_dir, "troop")
 
       @@available_commands = {
         :api_check                  => "Verify API version connectivity",
@@ -44,6 +47,8 @@ module VirtualMonkey
         :destroy_ssh_keys           => "Destroy virtualmonkey-generated SSH Keys",
         :generate_ssh_keys          => "Generate SSH Key files per Cloud",
         :list                       => "List the full Deployment nicknames and Server statuses for a set of Deployments",
+        :new_config                 => "Interactively create a new Troop Config JSON File",
+        :new_runner                 => "Interactively create a new testing scenario and all necessary files",
         :populate_all_cloud_vars    => "Calls 'generate_ssh_keys', 'populate_datacenters', and 'populate_security_groups' for all Clouds",
         :populate_datacenters       => "Populates datacenters.json with API 1.5 hrefs per Cloud",
         :populate_security_groups   => "Populates security_groups.json with appropriate hrefs per Cloud",
@@ -54,22 +59,24 @@ module VirtualMonkey
       }
 
       @@flags = {
-        :clouds       => "opt :clouds, 'Space-separated list of cloud_ids to use',                    :short => '-c', :type => :integers",
-        :deployment   => "opt :deployment, 'regex string to use for matching deployment',             :short => '-d', :type => :string",
-        :config_file  => "opt :config_file, 'Troop Config JSON File',                                 :short => '-f', :type => :string",
-        :inputs       => "opt :inputs, 'Input JSON files to be set at Deployment AND Server levels',  :short => '-i', :type => :strings",
-        :keep         => "opt :keep, 'Don't delete servers or deployments after terminating'          :short => '-k', :type => :boolean",
-        :mcis         => "opt :mcis, 'List of MCI hrefs to substitute for the ST-attached MCIs',      :short => '-m', :type => :string, :multi => true",
-        :n_copies     => "opt :n_copies, 'number of copies to make (default is 1)',                   :short => '-n', :type => :integer, :default => 1",
-        :only         => "opt :only, 'Regex string to use for subselection matching on MCIs',         :short => '-o', :type => :string",
-        :no_spot      => "opt :no_spot, 'do not use spot instances (default is true)',                :short => '-p', :type => :boolean, :default => true",
-        :qa           => "opt :qa, 'Special QA mode for exhaustively performing every possible test', :short => '-q', :type => :boolean",
-        :no_resume    => "opt :no_resume, 'Do not use trace info to resume a previous test',          :short => '-r', :type => :boolean",
-        :tests        => "opt :tag, 'Prefix of the deployments',                                      :short => '-t', :type => :strings",
-        :verbose      => "opt :verbose, 'Print all output to STDOUT as well as the log files',        :short => '-v', :type => :boolean",
-        :prefix       => "opt :tag, 'Prefix of the deployments',                                      :short => '-x', :type => :string",
-        :yes          => "opt :yes, 'Turn off confirmation',                                          :short => '-y', :type => :boolean",
-        :one_deploy   => "opt :one_deploy, 'Load all variations of a single ST into one Deployment',  :short => '-z', :type => :boolean"
+        :terminate      => "opt :terminate, 'Terminate if tests successfully complete. (No destroy)',         :short => '-a', :type => :boolean",
+        :common_inputs  => "opt :common_inputs, 'Input JSON files to be set at Deployment AND Server levels', :short => '-c', :type => :strings",
+        :deployment     => "opt :deployment, 'regex string to use for matching deployment',                   :short => '-d', :type => :string",
+        :config_file    => "opt :config_file, 'Troop Config JSON File',                                       :short => '-f', :type => :string",
+        :clouds         => "opt :clouds, 'Space-separated list of cloud_ids to use',                          :short => '-i', :type => :integers",
+        :keep           => "opt :keep, 'Do not delete servers or deployments after terminating',              :short => '-k', :type => :boolean",
+        :list_trainer   => "opt :list_trainer, 'run through the interactive white- and black-list trainer.',  :short => '-l', :type => :boolean",
+        :use_mci        => "opt :use_mci, 'List of MCI hrefs to substitute for the ST-attached MCIs',         :short => '-m', :type => :string, :multi => true",
+        :n_copies       => "opt :n_copies, 'Number of clones to make',                                        :short => '-n', :type => :integer, :default => 1",
+        :only           => "opt :only, 'Regex string to use for subselection matching on MCIs',               :short => '-o', :type => :string",
+        :no_spot        => "opt :no_spot, 'do not use spot instances',                                        :short => '-p', :type => :boolean, :default => true",
+        :qa             => "opt :qa, 'Special QA mode for exhaustively performing every possible test',       :short => '-q', :type => :boolean",
+        :no_resume      => "opt :no_resume, 'Do not use trace info to resume a previous test',                :short => '-r', :type => :boolean",
+        :tests          => "opt :tests, 'List of test names to run across Deployments (default is all)',      :short => '-t', :type => :strings",
+        :verbose        => "opt :verbose, 'Print all output to STDOUT as well as the log files',              :short => '-v', :type => :boolean",
+        :prefix         => "opt :prefix, 'Prefix of the Deployments',                                         :short => '-x', :type => :string",
+        :yes            => "opt :yes, 'Turn off confirmation',                                                :short => '-y', :type => :boolean",
+        :one_deploy     => "opt :one_deploy, 'Load all variations of a single ST into one Deployment',        :short => '-z', :type => :boolean"
       }
 
       max_width = @@available_commands.keys.map { |k| k.to_s.length }.max
@@ -89,7 +96,7 @@ module VirtualMonkey
 
     def self.use_options(*args)
       ret = []
-      args.each { |op|
+      args.sort { |a,b| a.to_s <=> b.to_s }.each { |op|
         ret << @@flags[op]
       }
       return ret.join(";")
@@ -99,7 +106,7 @@ module VirtualMonkey
     def self.help
       if subcommand = ARGV.shift
         ENV['REST_CONNECTION_LOG'] = "/dev/null"
-        print "#{@@available_commands[subcommand.to_sym]}\n#{`#{File.join(File.dirname(__FILE__), "..", "..", "bin", "monkey")} #{subcommand} --help`}"
+        print `#{File.join(File.dirname(__FILE__), "..", "..", "bin", "monkey")} #{subcommand} --help`
       else
         puts @@usage_msg
       end

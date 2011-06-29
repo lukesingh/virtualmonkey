@@ -9,5 +9,5 @@
   ],
   "cloud_variables":"aws_us_east.json",
   "common_inputs": [ "rails.json", "devtools.json"],
-  "tag":"TROOP_NGNXPASSRAIL"
+  "prefix":"TROOP_NGNXPASSRAIL"
 }

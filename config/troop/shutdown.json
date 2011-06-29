@@ -1,5 +1,5 @@
 {
-  "tag":"SHUTDOWN_TROOP",
+  "prefix":"SHUTDOWN_TROOP",
   "feature":"shutdown.rb",
   "cloud_variables":"all_clouds.json",
 

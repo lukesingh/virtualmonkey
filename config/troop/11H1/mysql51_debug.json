@@ -1,5 +1,5 @@
 {
-  "tag":"MYSQL_51_DEBUG_TROOP",
+  "prefix":"MYSQL_51_DEBUG_TROOP",
 
   "common_inputs":"mysql.json",
   "server_template_ids":[

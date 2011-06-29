@@ -1,5 +1,5 @@
 {
-  "tag":"TROOP_RAILS_APACHE_HAPROXY",
+  "prefix":"TROOP_RAILS_APACHE_HAPROXY",
   "feature":"lb-apache-haproxy.rb",
   "common_inputs":"rails.json",
 

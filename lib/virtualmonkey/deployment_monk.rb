@@ -5,18 +5,17 @@ require 'pp'
 class DeploymentMonk
   attr_accessor :common_inputs
   attr_accessor :deployments
-  attr_reader :tag
 
-  # Returns an Array of Deployment objects whose nicknames start with @tag
-  def from_tag
-    variations = Deployment.find_by(:nickname) {|n| n =~ /^#{@tag}/ }
-    puts "loading #{variations.size} deployments matching your tag"
+  # Returns an Array of Deployment objects whose nicknames start with @prefix
+  def from_prefix
+    variations = Deployment.find_by(:nickname) {|n| n =~ /^#{@prefix}/ }
+    puts "loading #{variations.size} deployments matching your prefix"
     return variations
   end
 
-  # Lists the nicknames of Array of Deployment objects whose nicknames start with tag
-  def self.list(tag, verbose = false)
-    deployments = Deployment.find_by(:nickname) {|n| n =~ /^#{tag}/ }
+  # Lists the nicknames of Array of Deployment objects whose nicknames start with prefix
+  def self.list(prefix, verbose = false)
+    deployments = Deployment.find_by(:nickname) {|n| n =~ /^#{prefix}/ }
     if verbose
       pp deployments.map { |d| { d.nickname => d.servers.map { |s| s.state } } }
     else
@@ -24,7 +23,7 @@ class DeploymentMonk
     end
   end
 
-  # Lists the nicknames of Array of Deployment objects whose nicknames start with @tag
+  # Lists the nicknames of Array of Deployment objects whose nicknames start with @prefix
   def list(verbose = false)
     if verbose
       pp @deployments.map { |d| { d.nickname => d.servers.map { |s| s.state } } }
@@ -33,11 +32,11 @@ class DeploymentMonk
     end
   end
 
-  def initialize(tag, server_templates = [], extra_images = [], suppress_monkey_warning = false, single_deployment = false)
+  def initialize(prefix, server_templates = [], extra_images = [], suppress_monkey_warning = false, single_deployment = false)
     @clouds = []
     @single_deployment = single_deployment
-    @tag = tag
-    @deployments = from_tag
+    @prefix = prefix
+    @deployments = from_prefix
     @server_templates = []
     @common_inputs = {}
     @variables_for_cloud = {}
@@ -158,13 +157,13 @@ class DeploymentMonk
 
         # Create Deployment for this MCI and cloud
         if @single_deployment && !deployment_created
-          dep_tempname = "#{@tag}-cloud_#{cloud}-#{rand(1000000)}-"
-          dep_tempname = "#{@tag}-cloud_multicloud-#{rand(1000000)}-" if @clouds.length > 1
+          dep_tempname = "#{@prefix}-cloud_#{cloud}-#{rand(1000000)}-"
+          dep_tempname = "#{@prefix}-cloud_multicloud-#{rand(1000000)}-" if @clouds.length > 1
           new_deploy = Deployment.create(:nickname => dep_tempname)
           @deployments << new_deploy
           deployment_created = true
         elsif !@single_deployment
-          dep_tempname = "#{@tag}-cloud_#{cloud}-#{rand(1000000)}-"
+          dep_tempname = "#{@prefix}-cloud_#{cloud}-#{rand(1000000)}-"
           new_deploy = Deployment.create(:nickname => dep_tempname)
           @deployments << new_deploy
         end
@@ -208,9 +207,9 @@ class DeploymentMonk
           end
 
           #Set Server Creation Parameters
-          serv_name = "#{@tag[0...2]}-#{rand(10000)}-#{st.nickname}-#{dep_image_names}" if @single_deployment
-          serv_name = "#{@tag[0...2]}-#{rand(10000)}-#{st.nickname}" unless @single_deployment
-          serv_name = "#{@tag[0...2]}-#{rand(100)}" if cloud.to_s == "232"
+          serv_name = "#{@prefix[0...2]}-#{rand(10000)}-#{st.nickname}-#{dep_image_names}" if @single_deployment
+          serv_name = "#{@prefix[0...2]}-#{rand(10000)}-#{st.nickname}" unless @single_deployment
+          serv_name = "#{@prefix[0...2]}-#{rand(100)}" if cloud.to_s == "232"
           server_params = { "nickname" => serv_name,
                             "deployment_href" => new_deploy.href.dup,
                             "server_template_href" => st.href.dup,

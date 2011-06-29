@@ -1,5 +1,5 @@
 {
-  "tag":"JENKINS_TROOP",
+  "prefix":"JENKINS_TROOP",
 
   "common_inputs":["jenkins.json","dr_toolbox.json"],
   "server_template_ids":[

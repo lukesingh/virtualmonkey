@@ -4,6 +4,6 @@
     "104346"
   ],
   "common_inputs":"dr_toolbox.json",
-  "tag":"DR_TOOLBOX",
+  "prefix":"DR_TOOLBOX",
   "feature":"dr_toolbox.rb"
 }

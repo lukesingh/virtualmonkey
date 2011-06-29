@@ -3,7 +3,7 @@
   "cloud_variables":"all_clouds.json",
 
   "common_inputs":"lamp_chef.json",
-  "tag":"MONKEY_LAMP_TESTING",
+  "prefix":"MONKEY_LAMP_TESTING",
   "server_template_ids":[
     "106233"
   ]

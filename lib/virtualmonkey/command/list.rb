@@ -2,10 +2,10 @@ module VirtualMonkey
   module Command
     def self.list
       @@options = Trollop::options do
-        opt :tag, "List deployment set tag", :type => :string, :required => true
-        opt :verbose, "List the state of each server in the deployments as well"
+        text @@available_commands[:list]
+        eval(VirtualMonkey::Command::use_options(:prefix, :verbose))
       end
-      DeploymentMonk.list(@@options[:tag], @@options[:verbose])
+      DeploymentMonk.list(@@options[:prefix], @@options[:verbose])
     end
   end 
 end

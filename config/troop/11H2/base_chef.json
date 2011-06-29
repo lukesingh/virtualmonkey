@@ -5,6 +5,6 @@
   ],
   "feature":"base.rb",
   "cloud_variables":"all_clouds.json",
-  "tag":"TROOP-chef-base",
+  "prefix":"TROOP-chef-base",
   "common_inputs":"none.json"
 }
